@@ -3,9 +3,21 @@ notifications:
 
 language: c
 
+env:
+  global:
+    - "ARTIFACTS_AWS_REGION=us-east-1"
+    - "ARTIFACTS_S3_BUCKET=cantact-builds"
+    - secure: "gol8KyPaZuEpibS+JIrzfWuwaYNtHF0gLR0Lol6PM49KZPnHfAg9P2zMNhESL6ZTmWFwEmhxuntFvOQbGqB55cJbmOv3ZeuYkMw4y+GRwKB3pRAqQTQXOx8uBSCvBw+zmwmbswUA+dlKVQAgGvHxjQRwSfByedZsDaCz/ACd7qs="
+    - secure: "dxFGsRnHyQWQgFBJztagS7OBWSef/p+tn9JhTgIOAZlI86dEe1bI/grkELsq4EV9IdgHFz6ks9+TT9Sb4IFu7+275sBJKAJOZw7Q2nILkUreF2WMwOJQd2ih0uQu3b68ccQxqQhp3s5FrOcUedwqnrM+Jk3+MhpKWO+cVgQ0SqQ="
+
 before_script:
   - sudo apt-add-repository 'deb http://archive.ubuntu.com/ubuntu trusty main universe multiverse restricted'
   - sudo apt-get update -qq
   - sudo apt-get install -y gcc-arm-none-eabi
+  - curl -sL https://raw.githubusercontent.com/travis-ci/artifacts/master/install | bash
+  - export PATH=$PATH:~/bin/
 
 script: make BUILD_NUMBER=$TRAVIS_BUILD_NUMBER
+
+after_success:
+  "travis-artifacts upload  --target-path=builds/b$TRAVIS_BUILD_NUMBER build/CANtact*"

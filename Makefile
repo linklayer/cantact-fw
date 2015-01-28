@@ -14,7 +14,7 @@ BUILD_NUMBER ?= 0
 SOURCES = main.c usbd_conf.c usbd_cdc_if.c usb_device.c usbd_desc.c stm32f0xx_hal_msp.c stm32f0xx_it.c system_stm32f0xx.c can.c slcan.c
 
 # TARGET: name of the user application
-TARGET = main
+TARGET = CANtact-b$(BUILD_NUMBER)
 
 # BUILD_DIR: directory to place output files in
 BUILD_DIR = build
@@ -168,6 +168,7 @@ $(BUILD_DIR):
 clean:
 		-rm $(BUILD_DIR)/*.o
 		-rm $(BUILD_DIR)/*.elf
+		-rm $(BUILD_DIR)/*.hex
 		-rm $(BUILD_DIR)/*.map
 
 .PHONY: clean all cubelib
