@@ -11,7 +11,4 @@ before_script:
   - export PATH=$PATH:$PWD/gcc-arm-none-eabi/bin/
   - echo 'Installed gcc-arm-none-eabi.'
 
-script:
-  echo 'Starting build...'
-  make
-  echo 'Build complete!'
+script: make
