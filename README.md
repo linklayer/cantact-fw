@@ -1,19 +1,21 @@
 # CANtact Firmware
 
+[![Build Status](https://travis-ci.org/CANtact/cantact-fw.svg?branch=master)](https://travis-ci.org/CANtact/cantact-fw)
+
 This repository contains sources for CANtact firmware.
 
 ## Building
 
-Firmware builds with GCC. Specifically, you will need gcc-arm-none-eabi, which 
-is packaged for Windows, OS X, and Linux on 
-[Launchpad](https://launchpad.net/gcc-arm-embedded/+download). Download for your 
+Firmware builds with GCC. Specifically, you will need gcc-arm-none-eabi, which
+is packaged for Windows, OS X, and Linux on
+[Launchpad](https://launchpad.net/gcc-arm-embedded/+download). Download for your
 system and add the `bin` folder to your PATH.
 
 With that done, you should be able to compile using `make`.
 
 ## Flashing & Debugging
 
-Debugging and flashing can be done with any STM32 Discovery board as a 
+Debugging and flashing can be done with any STM32 Discovery board as a
 programmer. You can also use other tools that support SWD.
 
 To use an STM32 Discovery, run [OpenOCD](http://openocd.sourceforge.net/) using
