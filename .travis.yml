@@ -12,4 +12,4 @@ before_script:
   - echo $PATH
   - @echo 'Installed gcc-arm-none-eabi.'
 
-script: make
+script: make BUILD_NUMBER=%{build_number}

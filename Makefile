@@ -8,6 +8,7 @@
 # user configuration:
 #######################################
 
+BUILD_NUMBER ?= 0
 
 # SOURCES: list of sources in the user application
 SOURCES = main.c usbd_conf.c usbd_cdc_if.c usb_device.c usbd_desc.c stm32f0xx_hal_msp.c stm32f0xx_it.c system_stm32f0xx.c can.c slcan.c
@@ -23,6 +24,7 @@ LD_SCRIPT = STM32F042C6_FLASH.ld
 
 # USER_DEFS user defined macros
 USER_DEFS = -D HSI48_VALUE=48000000 -D HSE_VALUE=16000000
+USER_DEFS += -D CANTACT_BUILD_NUMBER=$(BUILD_NUMBER)
 # USER_INCLUDES: user defined includes
 USER_INCLUDES =
 

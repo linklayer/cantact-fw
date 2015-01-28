@@ -56,7 +56,15 @@
 /** @defgroup USBD_DESC_Private_Defines
   * @{
   */
-#define CANTACT_SW_VER			"v0.1"
+#define STRINGIZE_(x) #x
+#define STRINGIZE(x) STRINGIZE_(x)
+
+#if CANTACT_BUILD_NUMBER == 0
+    #define CANTACT_SW_VER		"dev"
+#else
+    #define CANTACT_SW_VER		"b" STRINGIZE(CANTACT_BUILD_NUMBER)
+#endif
+
 #define USBD_VID			0xad50
 #define USBD_LANGID_STRING		1033
 #define USBD_MANUFACTURER_STRING	"CANtact"
