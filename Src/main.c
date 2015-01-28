@@ -52,6 +52,7 @@
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
+static void led_init(void);
 
 /* USER CODE BEGIN PFP */
 
@@ -80,21 +81,28 @@ int main(void)
     /* Initialize all configured peripherals */
     MX_GPIO_Init();
     can_init();
+    led_init();
     MX_USB_DEVICE_Init();
 
     /* USER CODE END 2 */
 
     /* USER CODE BEGIN 3 */
 
-    uint32_t count;
 
-    // start up delay to allow USB to initialize?
-    for(count=0; count<32000000; count++);
+    // turn on green LED
+    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, GPIO_PIN_SET);
+
+    // blink red LED for test
+    uint32_t count;
+    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_1, GPIO_PIN_SET);
+    for (count=0; count < 200000; count++) { __asm("nop");}
+    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_1, GPIO_PIN_RESET);
 
     // loop forever
     CanRxMsgTypeDef rx_msg;
     uint32_t status;
     uint8_t msg_buf[SLCAN_MTU];
+
     for (;;) {
 	while (!is_can_msg_pending());
 	status = can_rx(&rx_msg, 3);
@@ -102,11 +110,6 @@ int main(void)
 	    status = slcan_parse_frame(&msg_buf, &rx_msg);
 	    CDC_Transmit_FS(msg_buf, status);
 	}
-
-	#if 0
-	for(count=0; count < 16000000; count++);
-	CDC_Transmit_FS(str, sizeof(str));
-	#endif
     }
 
     /* USER CODE END 3 */
@@ -166,7 +169,15 @@ void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
-
+static void led_init() {
+    GPIO_InitTypeDef GPIO_InitStruct;
+    GPIO_InitStruct.Pin = GPIO_PIN_0 | GPIO_PIN_1;
+    GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+    GPIO_InitStruct.Pull = GPIO_PULLUP;
+    GPIO_InitStruct.Speed = GPIO_SPEED_MEDIUM;
+    GPIO_InitStruct.Alternate = 0;
+    HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+}
 /* USER CODE END 4 */
 
 #ifdef USE_FULL_ASSERT

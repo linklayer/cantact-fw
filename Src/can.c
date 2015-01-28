@@ -39,39 +39,40 @@ void can_init(void) {
 void can_enable(void) {
     uint32_t status;
     if (bus_state == OFF_BUS) {
-        hcan.Init.Mode = CAN_MODE_NORMAL;
-        hcan.pTxMsg = NULL;
-        status = HAL_CAN_Init(&hcan);
-        status = HAL_CAN_ConfigFilter(&hcan, &filter);
-        bus_state = ON_BUS;
+	hcan.Init.Mode = CAN_MODE_NORMAL;
+	hcan.pTxMsg = NULL;
+	status = HAL_CAN_Init(&hcan);
+	status = HAL_CAN_ConfigFilter(&hcan, &filter);
+	bus_state = ON_BUS;
     }
 }
 
 void can_disable(void) {
     uint32_t status;
     if (bus_state == ON_BUS) {
-        // do a bxCAN reset (set RESET bit to 1)
-        hcan.Instance->MCR |= CAN_MCR_RESET;
-        bus_state = OFF_BUS;
+	// do a bxCAN reset (set RESET bit to 1)
+	hcan.Instance->MCR |= CAN_MCR_RESET;
+	bus_state = OFF_BUS;
     }
+    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_1, GPIO_PIN_RESET);
 }
 
 void can_set_bitrate(enum can_bitrate bitrate) {
     if (bus_state == ON_BUS) {
-        // cannot set bitrate while on bus
-        return;
+	// cannot set bitrate while on bus
+	return;
     }
 
     switch (bitrate) {
-        case CAN_BITRATE_500K:
-            hcan.Init.Prescaler = 12;
-            break;
-        case CAN_BITRATE_250K:
-            hcan.Init.Prescaler = 24;
-            break;
-        case CAN_BITRATE_125K:
-            hcan.Init.Prescaler = 48;
-            break;
+	case CAN_BITRATE_500K:
+	    hcan.Init.Prescaler = 12;
+	    break;
+	case CAN_BITRATE_250K:
+	    hcan.Init.Prescaler = 24;
+	    break;
+	case CAN_BITRATE_125K:
+	    hcan.Init.Prescaler = 48;
+	    break;
     }
 }
 
@@ -82,6 +83,7 @@ uint32_t can_tx(CanTxMsgTypeDef *tx_msg, uint32_t timeout) {
     hcan.pTxMsg = tx_msg;
     status = HAL_CAN_Transmit(&hcan, timeout);
 
+    HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_1);
     return status;
 }
 
@@ -92,12 +94,13 @@ uint32_t can_rx(CanRxMsgTypeDef *rx_msg, uint32_t timeout) {
 
     status = HAL_CAN_Receive(&hcan, CAN_FIFO0, timeout);
 
+    HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_1);
     return status;
 }
 
 uint8_t is_can_msg_pending(uint8_t fifo) {
     if (bus_state == OFF_BUS) {
-        return 0;
+	return 0;
     }
     return (__HAL_CAN_MSG_PENDING(&hcan, fifo) > 0);
 }
