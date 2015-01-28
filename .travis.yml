@@ -4,10 +4,14 @@ notifications:
 language: c
 
 before_script:
-  - wget https://launchpad.net/gcc-arm-embedded/4.8/4.8-2014-q2-update/+download/gcc-arm-none-eabi-4_8-2014q2-20140609-linux.tar.bz2 -O gcc-arm-none-eabi.tar.bz2
+  - echo 'Installing gcc-arm-none-eabi...'
+  - travis_retry wget https://launchpad.net/gcc-arm-embedded/4.8/4.8-2014-q2-update/+download/gcc-arm-none-eabi-4_8-2014q2-20140609-linux.tar.bz2 -O gcc-arm-none-eabi.tar.bz2
   - mkdir -p gcc-arm-none-eabi
   - tar xjf gcc-arm-none-eabi.tar.bz2 -C gcc-arm-none-eabi --strip-components 1
   - export PATH=$PATH:$PWD/gcc-arm-none-eabi/bin/
+  - echo 'Installed gcc-arm-none-eabi.'
 
 script:
+  echo 'Starting build...'
   make
+  echo 'Build complete!'
