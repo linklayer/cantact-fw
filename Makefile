@@ -33,9 +33,9 @@ USB_INCLUDES = -IMiddlewares/ST/STM32_USB_Device_Library/Core/Inc
 USB_INCLUDES += -IMiddlewares/ST/STM32_USB_Device_Library/Class/CDC/Inc
 
 # USER_CFLAGS: user C flags (enable warnings, enable debug info)
-USER_CFLAGS = -Wall -g
+USER_CFLAGS = -Wall -g -ffunction-sections -fdata-sections -Os
 # USER_LDFLAGS:  user LD flags
-USER_LDFLAGS =
+USER_LDFLAGS = -fno-exceptions -ffunction-sections -fdata-sections -Wl,--gc-sections
 
 # TARGET_DEVICE: device to compile for
 TARGET_DEVICE = STM32F042x6
@@ -143,16 +143,15 @@ OBJECTS += $(BUILD_DIR)/startup_stm32f042x6.o
 
 # use the periphlib core library, plus generic ones (libc, libm, libnosys)
 LIBS = -lstm32cube -lc -lm -lnosys
-LDFLAGS = -T $(LD_SCRIPT) -L $(CUBELIB_BUILD_DIR) $(LIBS) $(USER_LDFLAGS)
+LDFLAGS = -T $(LD_SCRIPT) -L $(CUBELIB_BUILD_DIR) -static $(LIBS) $(USER_LDFLAGS)
 
 $(BUILD_DIR)/$(TARGET).hex: $(BUILD_DIR)/$(TARGET).elf
 	$(OBJCOPY) -O ihex $(BUILD_DIR)/$(TARGET).elf $@
 
 $(BUILD_DIR)/$(TARGET).elf: $(OBJECTS) $(USB_OBJECTS) $(CUBELIB)
 	$(CC) -o $@ $(CFLAGS) $(OBJECTS) $(USB_OBJECTS) \
-		-L$(CUBELIB_BUILD_DIR) -static $(LIBS) -Xlinker \
-		-Map=$(BUILD_DIR)/$(TARGET).map \
-		-T $(LD_SCRIPT)
+		$(LDFLAGS) -Xlinker \
+		-Map=$(BUILD_DIR)/$(TARGET).map
 	$(SIZE) $@
 
 $(BUILD_DIR)/%.o: Src/%.c | $(BUILD_DIR)

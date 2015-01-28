@@ -23,6 +23,10 @@ the stm32f0x.cfg file: `openocd -f fw/stm32f0x.cfg`.
 
 With OpenOCD running, arm-none-eabi-gdb can be used to load code and debug.
 
+## Contributors
+
+- [Ethan Zonca](https://github.com/normaldotcom) - Makefile fixes and code size optimization
+
 ## License
 
 See LICENSE.md
