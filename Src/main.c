@@ -127,25 +127,22 @@ void SystemClock_Config(void)
 
     // set up the oscillators
     // use external oscillator (16 MHz), enable 3x PLL (48 MHz)
-    RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
-    RCC_OscInitStruct.HSEState = RCC_HSE_ON;
-    RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
-    RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
-    RCC_OscInitStruct.PLL.PLLMUL = RCC_PLL_MUL3;
-    RCC_OscInitStruct.PLL.PREDIV = RCC_PREDIV_DIV1;
+    RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI48;
+    RCC_OscInitStruct.HSI48State = RCC_HSE_ON;
+    RCC_OscInitStruct.PLL.PLLState = RCC_PLL_NONE;
     HAL_RCC_OscConfig(&RCC_OscInitStruct);
 
     // set sysclk, hclk, and pclk1 source to PLL (48 MHz)
     RCC_ClkInitStruct.ClockType = (RCC_CLOCKTYPE_SYSCLK |
 				   RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_PCLK1);
-    RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
+    RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_HSI48;
     RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
     RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
     HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_0);
 
     // set USB clock source to PLL (48 MHz)
     PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_USB;
-    PeriphClkInit.UsbClockSelection = RCC_USBCLKSOURCE_PLLCLK;
+    PeriphClkInit.UsbClockSelection = RCC_USBCLKSOURCE_HSI48;
     HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit);
 
     __SYSCFG_CLK_ENABLE();
