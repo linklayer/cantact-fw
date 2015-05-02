@@ -121,14 +121,25 @@ int8_t slcan_parse_str(char *buf, uint8_t len) {
         return -1;
     }
 
-    uint8_t id_len = frame.IDE == CAN_ID_EXT ? SLCAN_EXT_ID_LEN : SLCAN_STD_ID_LEN;
     frame.StdId = 0;
-    i = 1;
-    while (i <= id_len) {
-        frame.StdId += buf[i++];
-        frame.StdId *= 16;
+    frame.ExtId = 0;
+    if (frame.IDE == CAN_ID_EXT) {
+        uint8_t id_len = SLCAN_EXT_ID_LEN;
+        i = 1;
+        while (i <= id_len) {
+            frame.ExtId *= 16;
+            frame.ExtId += buf[i++];
+        }
     }
-    frame.StdId /= 16;
+    else {
+        uint8_t id_len = SLCAN_STD_ID_LEN;
+        i = 1;
+        while (i <= id_len) {
+            frame.StdId *= 16;
+            frame.StdId += buf[i++];
+        }
+    }
+    
 
     frame.DLC = buf[i++];
     if (frame.DLC < 0 || frame.DLC > 8) {
