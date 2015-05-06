@@ -26,6 +26,7 @@ With OpenOCD running, arm-none-eabi-gdb can be used to load code and debug.
 ## Contributors
 
 - [Ethan Zonca](https://github.com/normaldotcom) - Makefile fixes and code size optimization
+- [onejope](https://github.com/onejope) - Fixes to extended ID handling
 
 ## License
 
