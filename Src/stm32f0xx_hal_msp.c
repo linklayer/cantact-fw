@@ -81,12 +81,6 @@ void HAL_CAN_MspInit(CAN_HandleTypeDef* hcan)
     HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
   /* USER CODE BEGIN CAN_MspInit 1 */
-    GPIO_InitStruct.Pin = GPIO_PIN_0 | GPIO_PIN_1;
-    GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-    GPIO_InitStruct.Pull = GPIO_PULLUP;
-    GPIO_InitStruct.Speed = GPIO_SPEED_MEDIUM;
-    GPIO_InitStruct.Alternate = 0;
-    HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
   /* USER CODE END CAN_MspInit 1 */
   }

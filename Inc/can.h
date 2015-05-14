@@ -2,9 +2,15 @@
 #define _CAN_H
 
 enum can_bitrate {
+    CAN_BITRATE_1000K,
     CAN_BITRATE_500K,
     CAN_BITRATE_250K,
     CAN_BITRATE_125K,
+    CAN_BITRATE_100K,
+    CAN_BITRATE_83K3,
+    CAN_BITRATE_62K5,
+    CAN_BITRATE_50K,
+    CAN_BITRATE_33K3,
 };
 
 enum can_bus_state {

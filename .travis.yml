@@ -20,4 +20,4 @@ before_script:
 script: make BUILD_NUMBER=$TRAVIS_BUILD_NUMBER
 
 after_success:
-  "artifacts upload  --target-paths=builds/b$TRAVIS_BUILD_NUMBER build/CANtact*"
+  "artifacts upload --target-paths=builds/b$TRAVIS_BUILD_NUMBER build/CANtact*"

@@ -33,46 +33,75 @@ void can_init(void) {
     hcan.Init.TXFP = DISABLE;
 
     bus_state = OFF_BUS;
-    //status = HAL_CAN_Init(&hcan);
 }
 
 void can_enable(void) {
     uint32_t status;
     if (bus_state == OFF_BUS) {
-	hcan.Init.Mode = CAN_MODE_NORMAL;
-	hcan.pTxMsg = NULL;
-	status = HAL_CAN_Init(&hcan);
-	status = HAL_CAN_ConfigFilter(&hcan, &filter);
-	bus_state = ON_BUS;
+        hcan.Init.Mode = CAN_MODE_NORMAL;
+        hcan.pTxMsg = NULL;
+        status = HAL_CAN_Init(&hcan);
+        status = HAL_CAN_ConfigFilter(&hcan, &filter);
+        bus_state = ON_BUS;
     }
 }
 
 void can_disable(void) {
     uint32_t status;
     if (bus_state == ON_BUS) {
-	// do a bxCAN reset (set RESET bit to 1)
-	hcan.Instance->MCR |= CAN_MCR_RESET;
-	bus_state = OFF_BUS;
+        // do a bxCAN reset (set RESET bit to 1)
+        hcan.Instance->MCR |= CAN_MCR_RESET;
+        bus_state = OFF_BUS;
     }
     HAL_GPIO_WritePin(GPIOB, GPIO_PIN_1, GPIO_PIN_RESET);
 }
 
 void can_set_bitrate(enum can_bitrate bitrate) {
     if (bus_state == ON_BUS) {
-	// cannot set bitrate while on bus
-	return;
+        // cannot set bitrate while on bus
+        return;
     }
 
     switch (bitrate) {
-	case CAN_BITRATE_500K:
-	    hcan.Init.Prescaler = 12;
-	    break;
-	case CAN_BITRATE_250K:
-	    hcan.Init.Prescaler = 24;
-	    break;
-	case CAN_BITRATE_125K:
-	    hcan.Init.Prescaler = 48;
-	    break;
+    case CAN_BITRATE_1000K:
+	// TODO
+        break;
+    case CAN_BITRATE_500K:
+        hcan.Init.Prescaler = 12;
+        break;
+    case CAN_BITRATE_250K:
+        hcan.Init.Prescaler = 24;
+        break;
+    case CAN_BITRATE_125K:
+        hcan.Init.Prescaler = 1;
+        break;
+    case CAN_BITRATE_100K:
+	// TODO
+        break;
+    case CAN_BITRATE_83K3:
+	// TODO
+        break;
+    case CAN_BITRATE_62K5:
+	// TODO
+        break;
+    case CAN_BITRATE_50K:
+	// TODO
+        break;
+    case CAN_BITRATE_33K3:
+	// TODO
+        break;
+    }
+}
+
+void can_set_silent(uint8_t silent) {
+    if (bus_state == ON_BUS) {
+        // cannot set silent mode while on bus
+        return;
+    }
+    if (silent) {
+        hcan.Init.Mode = CAN_MODE_SILENT;
+    } else {
+        hcan.Init.Mode = CAN_MODE_NORMAL;
     }
 }
 
@@ -100,7 +129,7 @@ uint32_t can_rx(CanRxMsgTypeDef *rx_msg, uint32_t timeout) {
 
 uint8_t is_can_msg_pending(uint8_t fifo) {
     if (bus_state == OFF_BUS) {
-	return 0;
+        return 0;
     }
     return (__HAL_CAN_MSG_PENDING(&hcan, fifo) > 0);
 }
