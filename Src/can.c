@@ -3,6 +3,7 @@
 
 CAN_HandleTypeDef hcan;
 CAN_FilterConfTypeDef filter;
+uint32_t prescaler;
 enum can_bus_state bus_state;
 
 void can_init(void) {
@@ -19,26 +20,26 @@ void can_init(void) {
     filter.BankNumber = 0;
     filter.FilterActivation = ENABLE;
 
+    // default to 125 kbit/s
+    prescaler = 48;
     hcan.Instance = CAN;
-    hcan.Init.Prescaler = 48;
-    hcan.Init.Mode = CAN_MODE_NORMAL;
-    hcan.Init.SJW = CAN_SJW_1TQ;
-    hcan.Init.BS1 = CAN_BS1_4TQ;
-    hcan.Init.BS2 = CAN_BS2_3TQ;
-    hcan.Init.TTCM = DISABLE;
-    hcan.Init.ABOM = DISABLE;
-    hcan.Init.AWUM = DISABLE;
-    hcan.Init.NART = DISABLE;
-    hcan.Init.RFLM = DISABLE;
-    hcan.Init.TXFP = DISABLE;
-
     bus_state = OFF_BUS;
 }
 
 void can_enable(void) {
     uint32_t status;
     if (bus_state == OFF_BUS) {
-        hcan.Init.Mode = CAN_MODE_NORMAL;
+	hcan.Init.Prescaler = prescaler;
+	hcan.Init.Mode = CAN_MODE_NORMAL;
+	hcan.Init.SJW = CAN_SJW_1TQ;
+	hcan.Init.BS1 = CAN_BS1_4TQ;
+	hcan.Init.BS2 = CAN_BS2_3TQ;
+	hcan.Init.TTCM = DISABLE;
+	hcan.Init.ABOM = DISABLE;
+	hcan.Init.AWUM = DISABLE;
+	hcan.Init.NART = DISABLE;
+	hcan.Init.RFLM = DISABLE;
+	hcan.Init.TXFP = DISABLE;
         hcan.pTxMsg = NULL;
         status = HAL_CAN_Init(&hcan);
         status = HAL_CAN_ConfigFilter(&hcan, &filter);
@@ -63,32 +64,32 @@ void can_set_bitrate(enum can_bitrate bitrate) {
     }
 
     switch (bitrate) {
-    case CAN_BITRATE_1000K:
-	// TODO
+    case CAN_BITRATE_10K:
+	prescaler = 600;
         break;
-    case CAN_BITRATE_500K:
-        hcan.Init.Prescaler = 12;
-        break;
-    case CAN_BITRATE_250K:
-        hcan.Init.Prescaler = 24;
-        break;
-    case CAN_BITRATE_125K:
-        hcan.Init.Prescaler = 1;
-        break;
-    case CAN_BITRATE_100K:
-	// TODO
-        break;
-    case CAN_BITRATE_83K3:
-	// TODO
-        break;
-    case CAN_BITRATE_62K5:
-	// TODO
+    case CAN_BITRATE_20K:
+	prescaler = 300;
         break;
     case CAN_BITRATE_50K:
-	// TODO
+	prescaler = 120;
         break;
-    case CAN_BITRATE_33K3:
-	// TODO
+    case CAN_BITRATE_100K:
+        prescaler = 60;
+        break;
+    case CAN_BITRATE_125K:
+        prescaler = 48;
+        break;
+    case CAN_BITRATE_250K:
+        prescaler = 24;
+        break;
+    case CAN_BITRATE_500K:
+        prescaler = 12;
+        break;
+    case CAN_BITRATE_750K:
+        prescaler = 8;
+        break;
+    case CAN_BITRATE_1000K:
+        prescaler = 6;
         break;
     }
 }
