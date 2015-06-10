@@ -41,8 +41,8 @@
 #include "can.h"
 #include "slcan.h"
 
-#define INTERNAL_OSCILLATOR
-//#define EXTERNAL_OSCILLATOR
+//#define INTERNAL_OSCILLATOR
+#define EXTERNAL_OSCILLATOR
 
 /* USER CODE END Includes */
 
