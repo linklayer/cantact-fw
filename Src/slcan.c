@@ -80,33 +80,67 @@ int8_t slcan_parse_str(char *buf, uint8_t len) {
         // open channel command
         can_enable();
         return 0;
+
     } else if (buf[0] == 'C') {
         // close channel command
         can_disable();
         return 0;
+
     } else if (buf[0] == 'S') {
         // set bitrate command
         switch(buf[1]) {
-            case 0:
-                can_set_bitrate(CAN_BITRATE_125K);
-                break;
-            case 1:
-                can_set_bitrate(CAN_BITRATE_250K);
-                break;
-            case 2:
-                can_set_bitrate(CAN_BITRATE_500K);
-                break;
-            default:
-                // invalid setting
-                return -1;
+        case 0:
+            can_set_bitrate(CAN_BITRATE_10K);
+            break;
+        case 1:
+            can_set_bitrate(CAN_BITRATE_20K);
+            break;
+        case 2:
+            can_set_bitrate(CAN_BITRATE_50K);
+            break;
+        case 3:
+            can_set_bitrate(CAN_BITRATE_100K);
+            break;
+        case 4:
+            can_set_bitrate(CAN_BITRATE_125K);
+            break;
+        case 5:
+            can_set_bitrate(CAN_BITRATE_250K);
+            break;
+        case 6:
+            can_set_bitrate(CAN_BITRATE_500K);
+            break;
+        case 7:
+            can_set_bitrate(CAN_BITRATE_750K);
+            break;
+        case 8:
+            can_set_bitrate(CAN_BITRATE_1000K);
+            break;
+        default:
+            // invalid setting
+            return -1;
         }
         return 0;
+
+    } else if (buf[0] == 'm' || buf[0] == 'M') {
+        // set mode command
+        if (buf[1] == 1) {
+            // mode 1: silent
+            can_set_silent(1);
+        } else {
+            // default to normal mode
+            can_set_silent(0);
+        }
+        return 0;
+
     } else if (buf[0] == 't' || buf[0] == 'T') {
         // transmit data frame command
         frame.RTR = CAN_RTR_DATA;
+
     } else if (buf[0] == 'r' || buf[0] == 'R') {
-        frame.RTR = CAN_RTR_REMOTE;
         // transmit remote frame command
+        frame.RTR = CAN_RTR_REMOTE;
+
     } else {
         // error, unknown command
         return -1;
@@ -121,14 +155,25 @@ int8_t slcan_parse_str(char *buf, uint8_t len) {
         return -1;
     }
 
-    uint8_t id_len = frame.IDE == CAN_ID_EXT ? SLCAN_EXT_ID_LEN : SLCAN_STD_ID_LEN;
     frame.StdId = 0;
-    i = 1;
-    while (i <= id_len) {
-        frame.StdId += buf[i++];
-        frame.StdId *= 16;
+    frame.ExtId = 0;
+    if (frame.IDE == CAN_ID_EXT) {
+        uint8_t id_len = SLCAN_EXT_ID_LEN;
+        i = 1;
+        while (i <= id_len) {
+            frame.ExtId *= 16;
+            frame.ExtId += buf[i++];
+        }
     }
-    frame.StdId /= 16;
+    else {
+        uint8_t id_len = SLCAN_STD_ID_LEN;
+        i = 1;
+        while (i <= id_len) {
+            frame.StdId *= 16;
+            frame.StdId += buf[i++];
+        }
+    }
+
 
     frame.DLC = buf[i++];
     if (frame.DLC < 0 || frame.DLC > 8) {
