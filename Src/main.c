@@ -41,6 +41,9 @@
 #include "can.h"
 #include "slcan.h"
 
+#define INTERNAL_OSCILLATOR
+//#define EXTERNAL_OSCILLATOR
+
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
@@ -125,12 +128,25 @@ void SystemClock_Config(void)
     RCC_ClkInitTypeDef RCC_ClkInitStruct;
     RCC_PeriphCLKInitTypeDef PeriphClkInit;
 
+#ifdef EXTERNAL_OSCILLATOR
     // set up the oscillators
     // use external oscillator (16 MHz), enable 3x PLL (48 MHz)
     RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI48;
     RCC_OscInitStruct.HSI48State = RCC_HSE_ON;
     RCC_OscInitStruct.PLL.PLLState = RCC_PLL_NONE;
     HAL_RCC_OscConfig(&RCC_OscInitStruct);
+#elif defined INTERNAL_OSCILLATOR
+    // set up the oscillators
+    // use external oscillator (16 MHz), enable 3x PLL (48 MHz)
+    RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
+    RCC_OscInitStruct.HSEState = RCC_HSE_ON;
+    RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
+    RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
+    RCC_OscInitStruct.PLL.PLLMUL = RCC_PLL_MUL3;
+    RCC_OscInitStruct.PLL.PREDIV = RCC_PREDIV_DIV1;
+#else
+	#error "Please define whether to use an internal or external oscillator"
+#endif
 
     // set sysclk, hclk, and pclk1 source to PLL (48 MHz)
     RCC_ClkInitStruct.ClockType = (RCC_CLOCKTYPE_SYSCLK |
