@@ -134,7 +134,6 @@ void SystemClock_Config(void)
     RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI48;
     RCC_OscInitStruct.HSI48State = RCC_HSI48_ON;
     RCC_OscInitStruct.PLL.PLLState = RCC_PLL_NONE;
-    HAL_RCC_OscConfig(&RCC_OscInitStruct);
 
     // set sysclk, hclk, and pclk1 source to HSI48 (48 MHz)
     RCC_ClkInitStruct.ClockType = (RCC_CLOCKTYPE_SYSCLK |
@@ -173,6 +172,7 @@ void SystemClock_Config(void)
 	#error "Please define whether to use an internal or external oscillator"
 #endif
 
+    HAL_RCC_OscConfig(&RCC_OscInitStruct);
     HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_0);
     HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit);
     __SYSCFG_CLK_ENABLE();
