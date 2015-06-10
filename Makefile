@@ -151,7 +151,6 @@ LDFLAGS = -T $(LD_SCRIPT) -L $(CUBELIB_BUILD_DIR) -static $(LIBS) $(USER_LDFLAGS
 
 $(BUILD_DIR)/$(TARGET).hex: $(BUILD_DIR)/$(TARGET).elf
 	$(OBJCOPY) -O ihex $(BUILD_DIR)/$(TARGET).elf $@
-	$(OBJCOPY) -O binary $(BUILD_DIR)/$(TARGET).elf $(BUILD_DIR)/$(TARGET).bin
 
 $(BUILD_DIR)/$(TARGET).bin: $(BUILD_DIR)/$(TARGET).elf
 	$(OBJCOPY) -O binary $(BUILD_DIR)/$(TARGET).elf $@
@@ -177,5 +176,6 @@ clean:
 		-rm $(BUILD_DIR)/*.elf
 		-rm $(BUILD_DIR)/*.hex
 		-rm $(BUILD_DIR)/*.map
+		-rm $(BUILD_DIR)/*.bin
 
 .PHONY: clean all cubelib
