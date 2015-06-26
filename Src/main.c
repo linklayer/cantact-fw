@@ -41,6 +41,9 @@
 #include "can.h"
 #include "slcan.h"
 
+//#define INTERNAL_OSCILLATOR
+#define EXTERNAL_OSCILLATOR
+
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
@@ -125,6 +128,26 @@ void SystemClock_Config(void)
     RCC_ClkInitTypeDef RCC_ClkInitStruct;
     RCC_PeriphCLKInitTypeDef PeriphClkInit;
 
+#ifdef INTERNAL_OSCILLATOR
+    // set up the oscillators
+    // use internal HSI48 (48 MHz), no PLL
+    RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI48;
+    RCC_OscInitStruct.HSI48State = RCC_HSI48_ON;
+    RCC_OscInitStruct.PLL.PLLState = RCC_PLL_NONE;
+
+    // set sysclk, hclk, and pclk1 source to HSI48 (48 MHz)
+    RCC_ClkInitStruct.ClockType = (RCC_CLOCKTYPE_SYSCLK |
+				   RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_PCLK1);
+    RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_HSI48;
+    RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
+    RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
+
+    // set USB clock source to HSI48 (48 MHz)
+    PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_USB;
+    PeriphClkInit.UsbClockSelection = RCC_USBCLKSOURCE_HSI48;
+
+
+#elif defined EXTERNAL_OSCILLATOR
     // set up the oscillators
     // use external oscillator (16 MHz), enable 3x PLL (48 MHz)
     RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
@@ -133,7 +156,6 @@ void SystemClock_Config(void)
     RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
     RCC_OscInitStruct.PLL.PLLMUL = RCC_PLL_MUL3;
     RCC_OscInitStruct.PLL.PREDIV = RCC_PREDIV_DIV1;
-    HAL_RCC_OscConfig(&RCC_OscInitStruct);
 
     // set sysclk, hclk, and pclk1 source to PLL (48 MHz)
     RCC_ClkInitStruct.ClockType = (RCC_CLOCKTYPE_SYSCLK |
@@ -141,13 +163,18 @@ void SystemClock_Config(void)
     RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
     RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
     RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
-    HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_0);
 
     // set USB clock source to PLL (48 MHz)
     PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_USB;
     PeriphClkInit.UsbClockSelection = RCC_USBCLKSOURCE_PLLCLK;
-    HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit);
 
+#else
+	#error "Please define whether to use an internal or external oscillator"
+#endif
+
+    HAL_RCC_OscConfig(&RCC_OscInitStruct);
+    HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_0);
+    HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit);
     __SYSCFG_CLK_ENABLE();
 
 }

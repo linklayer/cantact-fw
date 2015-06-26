@@ -176,5 +176,6 @@ clean:
 		-rm $(BUILD_DIR)/*.elf
 		-rm $(BUILD_DIR)/*.hex
 		-rm $(BUILD_DIR)/*.map
+		-rm $(BUILD_DIR)/*.bin
 
 .PHONY: clean all cubelib
