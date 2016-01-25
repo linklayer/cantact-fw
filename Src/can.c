@@ -1,5 +1,6 @@
 #include "stm32f0xx_hal.h"
 #include "can.h"
+#include "led.h"
 
 CAN_HandleTypeDef hcan;
 CAN_FilterConfTypeDef filter;
@@ -113,7 +114,7 @@ uint32_t can_tx(CanTxMsgTypeDef *tx_msg, uint32_t timeout) {
     hcan.pTxMsg = tx_msg;
     status = HAL_CAN_Transmit(&hcan, timeout);
 
-    HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_1);
+	led_on();
     return status;
 }
 
@@ -124,7 +125,7 @@ uint32_t can_rx(CanRxMsgTypeDef *rx_msg, uint32_t timeout) {
 
     status = HAL_CAN_Receive(&hcan, CAN_FIFO0, timeout);
 
-    HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_1);
+	led_on();
     return status;
 }
 

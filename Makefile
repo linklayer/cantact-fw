@@ -11,7 +11,7 @@
 BUILD_NUMBER ?= 0
 
 # SOURCES: list of sources in the user application
-SOURCES = main.c usbd_conf.c usbd_cdc_if.c usb_device.c usbd_desc.c stm32f0xx_hal_msp.c stm32f0xx_it.c system_stm32f0xx.c can.c slcan.c
+SOURCES = main.c usbd_conf.c usbd_cdc_if.c usb_device.c usbd_desc.c stm32f0xx_hal_msp.c stm32f0xx_it.c system_stm32f0xx.c can.c slcan.c led.c
 
 # TARGET: name of the user application
 TARGET = CANtact-b$(BUILD_NUMBER)

@@ -40,9 +40,10 @@
 #include "usbd_cdc_if.h"
 #include "can.h"
 #include "slcan.h"
+#include "led.h"
 
-//#define INTERNAL_OSCILLATOR
-#define EXTERNAL_OSCILLATOR
+#define INTERNAL_OSCILLATOR
+//#define EXTERNAL_OSCILLATOR
 
 /* USER CODE END Includes */
 
@@ -64,6 +65,7 @@ static void led_init(void);
 /* USER CODE BEGIN 0 */
 
 /* USER CODE END 0 */
+
 
 volatile int i=0;
 int main(void)
@@ -98,7 +100,11 @@ int main(void)
     // blink red LED for test
     uint32_t count;
     HAL_GPIO_WritePin(GPIOB, GPIO_PIN_1, GPIO_PIN_SET);
-    for (count=0; count < 200000; count++) { __asm("nop");}
+	HAL_Delay(100);
+    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_1, GPIO_PIN_RESET);
+	HAL_Delay(100);
+    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_1, GPIO_PIN_SET);
+	HAL_Delay(100);
     HAL_GPIO_WritePin(GPIOB, GPIO_PIN_1, GPIO_PIN_RESET);
 
     // loop forever
@@ -106,13 +112,16 @@ int main(void)
     uint32_t status;
     uint8_t msg_buf[SLCAN_MTU];
 
+
     for (;;) {
-	while (!is_can_msg_pending());
-	status = can_rx(&rx_msg, 3);
-	if (status == HAL_OK) {
-	    status = slcan_parse_frame(&msg_buf, &rx_msg);
-	    CDC_Transmit_FS(msg_buf, status);
-	}
+		while (!is_can_msg_pending())
+			led_process();
+		status = can_rx(&rx_msg, 3);
+		if (status == HAL_OK) {
+			status = slcan_parse_frame(&msg_buf, &rx_msg);
+			CDC_Transmit_FS(msg_buf, status);
+		}
+		led_process();
     }
 
     /* USER CODE END 3 */
@@ -176,6 +185,10 @@ void SystemClock_Config(void)
     HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_0);
     HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit);
     __SYSCFG_CLK_ENABLE();
+
+	HAL_SYSTICK_Config(HAL_RCC_GetHCLKFreq()/1000);
+	HAL_SYSTICK_CLKSourceConfig(SYSTICK_CLKSOURCE_HCLK);
+    HAL_NVIC_SetPriority(SysTick_IRQn, 0, 0);
 
 }
 
