@@ -114,7 +114,7 @@ int main(void)
 
 
     for (;;) {
-		while (!is_can_msg_pending())
+		while (!is_can_msg_pending(CAN_FIFO0))
 			led_process();
 		status = can_rx(&rx_msg, 3);
 		if (status == HAL_OK) {
