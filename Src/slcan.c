@@ -69,11 +69,15 @@ int8_t slcan_parse_str(char *buf, uint8_t len) {
 
     // convert from ASCII (2nd character to end)
     for (i = 1; i < len; i++) {
-        if (buf[i] < 'A') {
-            buf[i] -= 0x30;
-        } else {
-            buf[i] -= 0x37;
-        }
+        // lowercase letters
+        if(buf[i] >= 'a')
+            buf[i] = buf[i] - 'a' + 10;
+        // uppercase letters
+        else if(buf[i] >= 'A')
+            buf[i] = buf[i] - 'A' + 10;
+        // numbers
+        else
+            buf[i] = buf[i] - '0';
     }
 
     if (buf[0] == 'O') {
