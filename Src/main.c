@@ -40,6 +40,10 @@
 #include "usbd_cdc_if.h"
 #include "can.h"
 #include "slcan.h"
+#include "led.h"
+
+//#define INTERNAL_OSCILLATOR
+#define EXTERNAL_OSCILLATOR
 
 /* USER CODE END Includes */
 
@@ -61,6 +65,7 @@ static void led_init(void);
 /* USER CODE BEGIN 0 */
 
 /* USER CODE END 0 */
+
 
 volatile int i=0;
 int main(void)
@@ -93,9 +98,12 @@ int main(void)
     HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, GPIO_PIN_SET);
 
     // blink red LED for test
-    uint32_t count;
     HAL_GPIO_WritePin(GPIOB, GPIO_PIN_1, GPIO_PIN_SET);
-    for (count=0; count < 200000; count++) { __asm("nop");}
+	HAL_Delay(100);
+    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_1, GPIO_PIN_RESET);
+	HAL_Delay(100);
+    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_1, GPIO_PIN_SET);
+	HAL_Delay(100);
     HAL_GPIO_WritePin(GPIOB, GPIO_PIN_1, GPIO_PIN_RESET);
 
     // loop forever
@@ -103,13 +111,16 @@ int main(void)
     uint32_t status;
     uint8_t msg_buf[SLCAN_MTU];
 
+
     for (;;) {
-	while (!is_can_msg_pending());
-	status = can_rx(&rx_msg, 3);
-	if (status == HAL_OK) {
-	    status = slcan_parse_frame(&msg_buf, &rx_msg);
-	    CDC_Transmit_FS(msg_buf, status);
-	}
+		while (!is_can_msg_pending(CAN_FIFO0))
+			led_process();
+		status = can_rx(&rx_msg, 3);
+		if (status == HAL_OK) {
+			status = slcan_parse_frame((uint8_t *)&msg_buf, &rx_msg);
+			CDC_Transmit_FS(msg_buf, status);
+		}
+		led_process();
     }
 
     /* USER CODE END 3 */
@@ -125,6 +136,26 @@ void SystemClock_Config(void)
     RCC_ClkInitTypeDef RCC_ClkInitStruct;
     RCC_PeriphCLKInitTypeDef PeriphClkInit;
 
+#ifdef INTERNAL_OSCILLATOR
+    // set up the oscillators
+    // use internal HSI48 (48 MHz), no PLL
+    RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI48;
+    RCC_OscInitStruct.HSI48State = RCC_HSI48_ON;
+    RCC_OscInitStruct.PLL.PLLState = RCC_PLL_NONE;
+
+    // set sysclk, hclk, and pclk1 source to HSI48 (48 MHz)
+    RCC_ClkInitStruct.ClockType = (RCC_CLOCKTYPE_SYSCLK |
+				   RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_PCLK1);
+    RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_HSI48;
+    RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
+    RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
+
+    // set USB clock source to HSI48 (48 MHz)
+    PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_USB;
+    PeriphClkInit.UsbClockSelection = RCC_USBCLKSOURCE_HSI48;
+
+
+#elif defined EXTERNAL_OSCILLATOR
     // set up the oscillators
     // use external oscillator (16 MHz), enable 3x PLL (48 MHz)
     RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
@@ -133,7 +164,6 @@ void SystemClock_Config(void)
     RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
     RCC_OscInitStruct.PLL.PLLMUL = RCC_PLL_MUL3;
     RCC_OscInitStruct.PLL.PREDIV = RCC_PREDIV_DIV1;
-    HAL_RCC_OscConfig(&RCC_OscInitStruct);
 
     // set sysclk, hclk, and pclk1 source to PLL (48 MHz)
     RCC_ClkInitStruct.ClockType = (RCC_CLOCKTYPE_SYSCLK |
@@ -141,14 +171,23 @@ void SystemClock_Config(void)
     RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
     RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
     RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
-    HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_0);
 
     // set USB clock source to PLL (48 MHz)
     PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_USB;
     PeriphClkInit.UsbClockSelection = RCC_USBCLKSOURCE_PLLCLK;
-    HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit);
 
+#else
+	#error "Please define whether to use an internal or external oscillator"
+#endif
+
+    HAL_RCC_OscConfig(&RCC_OscInitStruct);
+    HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_0);
+    HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit);
     __SYSCFG_CLK_ENABLE();
+
+	HAL_SYSTICK_Config(HAL_RCC_GetHCLKFreq()/1000);
+	HAL_SYSTICK_CLKSourceConfig(SYSTICK_CLKSOURCE_HCLK);
+    HAL_NVIC_SetPriority(SysTick_IRQn, 0, 0);
 
 }
 

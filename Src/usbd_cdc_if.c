@@ -250,17 +250,11 @@ uint8_t slcan_str_index = 0;
 static int8_t CDC_Receive_FS (uint8_t* Buf, uint32_t *Len)
 {
     /* USER CODE BEGIN 7 */
-    uint32_t status;
-    CanTxMsgTypeDef TxMsg;
-
-    /*uint8_t test_str[] = "t71181122334455667788";
-      slcan_parse_str(&TxMsg, test_str, sizeof(test_str));*/
-
     uint8_t n = *Len;
     uint8_t i;
     for (i = 0; i < n; i++) {
 	if (Buf[i] == '\r') {
-	    status = slcan_parse_str(slcan_str, slcan_str_index);
+	    slcan_parse_str(slcan_str, slcan_str_index);
 	    slcan_str_index = 0;
 	} else {
 	    slcan_str[slcan_str_index++] = Buf[i];

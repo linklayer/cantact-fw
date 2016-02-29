@@ -1,8 +1,8 @@
 #ifndef _SLCAN_H
 #define _SLCAN_H
 
-int8_t slcan_parse_frame(char *buf, CanRxMsgTypeDef *frame);
-int8_t slcan_parse_str(char *buf, uint8_t len);
+int8_t slcan_parse_frame(uint8_t *buf, CanRxMsgTypeDef *frame);
+int8_t slcan_parse_str(uint8_t *buf, uint8_t len);
 
 /* maximum rx buffer len: extended CAN frame with timestamp */
 #define SLCAN_MTU 30// (sizeof("T1111222281122334455667788EA5F\r")+1)

@@ -1,5 +1,6 @@
 #include "stm32f0xx_hal.h"
 #include "can.h"
+#include "led.h"
 
 CAN_HandleTypeDef hcan;
 CAN_FilterConfTypeDef filter;
@@ -7,8 +8,6 @@ uint32_t prescaler;
 enum can_bus_state bus_state;
 
 void can_init(void) {
-    uint32_t status;
-
     filter.FilterIdHigh = 0;
     filter.FilterIdLow = 0;
     filter.FilterMaskIdHigh = 0;
@@ -27,7 +26,6 @@ void can_init(void) {
 }
 
 void can_enable(void) {
-    uint32_t status;
     if (bus_state == OFF_BUS) {
 	hcan.Init.Prescaler = prescaler;
 	hcan.Init.Mode = CAN_MODE_NORMAL;
@@ -41,14 +39,13 @@ void can_enable(void) {
 	hcan.Init.RFLM = DISABLE;
 	hcan.Init.TXFP = DISABLE;
         hcan.pTxMsg = NULL;
-        status = HAL_CAN_Init(&hcan);
-        status = HAL_CAN_ConfigFilter(&hcan, &filter);
+        HAL_CAN_Init(&hcan);
+        HAL_CAN_ConfigFilter(&hcan, &filter);
         bus_state = ON_BUS;
     }
 }
 
 void can_disable(void) {
-    uint32_t status;
     if (bus_state == ON_BUS) {
         // do a bxCAN reset (set RESET bit to 1)
         hcan.Instance->MCR |= CAN_MCR_RESET;
@@ -113,7 +110,7 @@ uint32_t can_tx(CanTxMsgTypeDef *tx_msg, uint32_t timeout) {
     hcan.pTxMsg = tx_msg;
     status = HAL_CAN_Transmit(&hcan, timeout);
 
-    HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_1);
+	led_on();
     return status;
 }
 
@@ -124,7 +121,7 @@ uint32_t can_rx(CanRxMsgTypeDef *rx_msg, uint32_t timeout) {
 
     status = HAL_CAN_Receive(&hcan, CAN_FIFO0, timeout);
 
-    HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_1);
+	led_on();
     return status;
 }
 
