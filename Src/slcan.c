@@ -2,7 +2,7 @@
 #include "can.h"
 #include "slcan.h"
 
-int8_t slcan_parse_frame(char *buf, CanRxMsgTypeDef *frame) {
+int8_t slcan_parse_frame(uint8_t *buf, CanRxMsgTypeDef *frame) {
     uint8_t i = 0;
     uint8_t id_len, j;
     uint32_t tmp;
@@ -63,7 +63,7 @@ int8_t slcan_parse_frame(char *buf, CanRxMsgTypeDef *frame) {
     return i;
 }
 
-int8_t slcan_parse_str(char *buf, uint8_t len) {
+int8_t slcan_parse_str(uint8_t *buf, uint8_t len) {
     CanTxMsgTypeDef frame;
     uint8_t i;
 

@@ -8,8 +8,6 @@ uint32_t prescaler;
 enum can_bus_state bus_state;
 
 void can_init(void) {
-    uint32_t status;
-
     filter.FilterIdHigh = 0;
     filter.FilterIdLow = 0;
     filter.FilterMaskIdHigh = 0;
@@ -28,7 +26,6 @@ void can_init(void) {
 }
 
 void can_enable(void) {
-    uint32_t status;
     if (bus_state == OFF_BUS) {
 	hcan.Init.Prescaler = prescaler;
 	hcan.Init.Mode = CAN_MODE_NORMAL;
@@ -42,14 +39,13 @@ void can_enable(void) {
 	hcan.Init.RFLM = DISABLE;
 	hcan.Init.TXFP = DISABLE;
         hcan.pTxMsg = NULL;
-        status = HAL_CAN_Init(&hcan);
-        status = HAL_CAN_ConfigFilter(&hcan, &filter);
+        HAL_CAN_Init(&hcan);
+        HAL_CAN_ConfigFilter(&hcan, &filter);
         bus_state = ON_BUS;
     }
 }
 
 void can_disable(void) {
-    uint32_t status;
     if (bus_state == ON_BUS) {
         // do a bxCAN reset (set RESET bit to 1)
         hcan.Instance->MCR |= CAN_MCR_RESET;

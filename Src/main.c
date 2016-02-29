@@ -98,7 +98,6 @@ int main(void)
     HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, GPIO_PIN_SET);
 
     // blink red LED for test
-    uint32_t count;
     HAL_GPIO_WritePin(GPIOB, GPIO_PIN_1, GPIO_PIN_SET);
 	HAL_Delay(100);
     HAL_GPIO_WritePin(GPIOB, GPIO_PIN_1, GPIO_PIN_RESET);
@@ -118,7 +117,7 @@ int main(void)
 			led_process();
 		status = can_rx(&rx_msg, 3);
 		if (status == HAL_OK) {
-			status = slcan_parse_frame(&msg_buf, &rx_msg);
+			status = slcan_parse_frame((uint8_t *)&msg_buf, &rx_msg);
 			CDC_Transmit_FS(msg_buf, status);
 		}
 		led_process();
