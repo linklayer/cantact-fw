@@ -1,6 +1,6 @@
 # CANtact Firmware
 
-[![Build Status](https://travis-ci.org/CANtact/cantact-fw.svg?branch=master)](https://travis-ci.org/CANtact/cantact-fw)
+[![Build Status](https://travis-ci.org/linklayer/cantact-fw.svg?branch=master)](https://travis-ci.org/linklayer/cantact-fw)
 
 This repository contains sources for CANtact firmware.
 
