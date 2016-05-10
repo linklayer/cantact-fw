@@ -42,8 +42,6 @@
 #include "slcan.h"
 #include "led.h"
 
-//#define INTERNAL_OSCILLATOR
-#define EXTERNAL_OSCILLATOR
 
 /* USER CODE END Includes */
 
@@ -155,7 +153,7 @@ void SystemClock_Config(void)
     PeriphClkInit.UsbClockSelection = RCC_USBCLKSOURCE_HSI48;
 
 
-#elif defined EXTERNAL_OSCILLATOR
+#else
     // set up the oscillators
     // use external oscillator (16 MHz), enable 3x PLL (48 MHz)
     RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
@@ -176,8 +174,6 @@ void SystemClock_Config(void)
     PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_USB;
     PeriphClkInit.UsbClockSelection = RCC_USBCLKSOURCE_PLLCLK;
 
-#else
-	#error "Please define whether to use an internal or external oscillator"
 #endif
 
     HAL_RCC_OscConfig(&RCC_OscInitStruct);
@@ -185,9 +181,41 @@ void SystemClock_Config(void)
     HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit);
     __SYSCFG_CLK_ENABLE();
 
+
 	HAL_SYSTICK_Config(HAL_RCC_GetHCLKFreq()/1000);
 	HAL_SYSTICK_CLKSourceConfig(SYSTICK_CLKSOURCE_HCLK);
     HAL_NVIC_SetPriority(SysTick_IRQn, 0, 0);
+
+
+#ifdef INTERNAL_OSCILLATOR
+    // Enable clock recovery system for internal oscillator
+    RCC_CRSInitTypeDef RCC_CRSInitStruct;
+
+    // Enable CRS Clock
+    __CRS_CLK_ENABLE();
+
+    // Default Synchro Signal division factor (not divided) 
+    RCC_CRSInitStruct.Prescaler = RCC_CRS_SYNC_DIV1;
+
+    // Set the SYNCSRC[1:0] bits according to CRS_Source value 
+    RCC_CRSInitStruct.Source = RCC_CRS_SYNC_SOURCE_USB;
+
+    // HSI48 is synchronized with USB SOF at 1KHz rate 
+    RCC_CRSInitStruct.ReloadValue = __HAL_RCC_CRS_CALCULATE_RELOADVALUE(48000000, 1000);
+    RCC_CRSInitStruct.ErrorLimitValue = RCC_CRS_ERRORLIMIT_DEFAULT;
+
+    // Set the TRIM[5:0] to the default value
+    RCC_CRSInitStruct.HSI48CalibrationValue = 0x20; 
+
+    // Start automatic synchronization 
+    HAL_RCCEx_CRSConfig(&RCC_CRSInitStruct);
+
+    // Force sync event
+    HAL_RCCEx_CRSSoftwareSynchronizationGenerate();
+
+    // Wait until synchronized
+    HAL_RCCEx_CRSWaitSynchronization(3000);
+#endif
 
 }
 
