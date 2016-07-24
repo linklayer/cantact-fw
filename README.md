@@ -11,7 +11,7 @@ is packaged for Windows, OS X, and Linux on
 [Launchpad](https://launchpad.net/gcc-arm-embedded/+download). Download for your
 system and add the `bin` folder to your PATH.
 
-With that done, you should be able to compile using `make`.
+With that done, you should be able to compile using `make`. If you are compiling for a device that has no external crystal, compile with `make INTERNAL_OSCILLATOR=1`.
 
 ## Flashing & Debugging
 
