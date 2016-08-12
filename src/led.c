@@ -23,8 +23,35 @@ void led_init()
 }
 
 
+// Turn green LED on
+void led_green_on(void)
+{
+	HAL_GPIO_WritePin(LED_GREEN, 1);
+}
+
+
+// Turn green LED on
+void led_green_off(void)
+{
+	HAL_GPIO_WritePin(LED_GREEN, 0);
+}
+
+
+// Blink blue LED (blocking)
+void led_blue_blink(uint8_t numblinks)
+{
+	uint8_t i;
+	for(i=0; i<numblinks; i++)
+	{
+		HAL_GPIO_WritePin(LED_BLUE, 1);
+		HAL_Delay(100);
+		HAL_GPIO_WritePin(LED_BLUE, 0);
+		HAL_Delay(100);
+	}
+}
+
 // Attempt to turn on status LED
-void led_on(void)
+void led_blue_on(void)
 {
 	// Make sure the LED has been off for at least LED_DURATION before turning on again
 	// This prevents a solid status LED on a busy canbus

@@ -23,3 +23,9 @@ void SysTick_Handler(void)
   HAL_SYSTICK_IRQHandler();
 }
 
+
+// Handle CAN interrupts
+void CEC_CAN_IRQHandler(void)
+{
+  HAL_CAN_IRQHandler(can_gethandle());
+}

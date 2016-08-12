@@ -3,13 +3,15 @@
 //
 
 #include "stm32f0xx_hal.h"
+#include "slcan.h"
+#include "usbd_cdc_if.h"
 #include "can.h"
 #include "led.h"
 
 
-CAN_HandleTypeDef hcan;
-CAN_FilterConfTypeDef filter;
-uint32_t prescaler;
+static CAN_HandleTypeDef can_handle;
+static CAN_FilterConfTypeDef filter;
+static uint32_t prescaler;
 enum can_bus_state bus_state;
 
 
@@ -45,7 +47,7 @@ void can_init(void)
 
     // default to 125 kbit/s
     prescaler = 48;
-    hcan.Instance = CAN;
+    can_handle.Instance = CAN;
     bus_state = OFF_BUS;
 }
 
@@ -55,21 +57,26 @@ void can_enable(void)
 {
     if (bus_state == OFF_BUS)
     {
-        hcan.Init.Prescaler = prescaler;
-        hcan.Init.Mode = CAN_MODE_NORMAL;
-        hcan.Init.SJW = CAN_SJW_1TQ;
-        hcan.Init.BS1 = CAN_BS1_4TQ;
-        hcan.Init.BS2 = CAN_BS2_3TQ;
-        hcan.Init.TTCM = DISABLE;
-        hcan.Init.ABOM = DISABLE;
-        hcan.Init.AWUM = DISABLE;
-        hcan.Init.NART = DISABLE;
-        hcan.Init.RFLM = DISABLE;
-        hcan.Init.TXFP = DISABLE;
-        hcan.pTxMsg = NULL;
-        HAL_CAN_Init(&hcan);
-        HAL_CAN_ConfigFilter(&hcan, &filter);
+    	can_handle.Init.Prescaler = prescaler;
+    	can_handle.Init.Mode = CAN_MODE_NORMAL;
+    	can_handle.Init.SJW = CAN_SJW_1TQ;
+    	can_handle.Init.BS1 = CAN_BS1_4TQ;
+    	can_handle.Init.BS2 = CAN_BS2_3TQ;
+    	can_handle.Init.TTCM = DISABLE;
+    	can_handle.Init.ABOM = DISABLE;
+    	can_handle.Init.AWUM = DISABLE;
+    	can_handle.Init.NART = DISABLE;
+    	can_handle.Init.RFLM = DISABLE;
+    	can_handle.Init.TXFP = DISABLE;
+    	can_handle.pTxMsg = NULL;
+        HAL_CAN_Init(&can_handle);
+        HAL_CAN_ConfigFilter(&can_handle, &filter);
         bus_state = ON_BUS;
+
+    	HAL_NVIC_SetPriority(CEC_CAN_IRQn, 1, 0);
+    	HAL_NVIC_EnableIRQ(CEC_CAN_IRQn);
+    	HAL_CAN_Receive_IT(&can_handle, CAN_FIFO0);
+
     }
 }
 
@@ -80,8 +87,12 @@ void can_disable(void)
     if (bus_state == ON_BUS)
     {
         // do a bxCAN reset (set RESET bit to 1)
-        hcan.Instance->MCR |= CAN_MCR_RESET;
+    	can_handle.Instance->MCR |= CAN_MCR_RESET;
         bus_state = OFF_BUS;
+
+    	HAL_NVIC_DisableIRQ(CEC_CAN_IRQn);
+    	HAL_CAN_DeInit(&can_handle);
+
     }
     HAL_GPIO_WritePin(LED_BLUE, GPIO_PIN_RESET);
 }
@@ -139,38 +150,48 @@ void can_set_silent(uint8_t silent)
     }
     if (silent)
     {
-        hcan.Init.Mode = CAN_MODE_SILENT;
+    	can_handle.Init.Mode = CAN_MODE_SILENT;
     } else {
-        hcan.Init.Mode = CAN_MODE_NORMAL;
+    	can_handle.Init.Mode = CAN_MODE_NORMAL;
     }
 }
 
 
 // Send a message on the CAN bus (blocking)
-uint32_t can_tx(CanTxMsgTypeDef *tx_msg, uint32_t timeout)
+uint32_t can_tx(CanTxMsgTypeDef *tx_msg)
 {
     uint32_t status;
 
     // transmit can frame
-    hcan.pTxMsg = tx_msg;
-    status = HAL_CAN_Transmit(&hcan, timeout);
+    can_handle.pTxMsg = tx_msg;
+    status = HAL_CAN_Transmit_IT(&can_handle);
 
-	led_on();
+	led_blue_on();
     return status;
 }
 
-
-// Receive a message from the CAN bus (blocking)
-uint32_t can_rx(CanRxMsgTypeDef *rx_msg, uint32_t timeout)
+// CAN rxcomplete callback TODO: Move to interrupts?
+void HAL_CAN_RxCpltCallback(CAN_HandleTypeDef *hcan)
 {
-    uint32_t status;
+	led_blue_on();
 
-    hcan.pRxMsg = rx_msg;
+	// TODO: Store this message in a buffer and defer CDC send to main loop
+	CanRxMsgTypeDef* rxmsg = hcan->pRxMsg;
+    uint8_t msg_buf[SLCAN_MTU];
+	uint32_t numbytes = slcan_parse_frame(msg_buf, rxmsg);
+	CDC_Transmit_FS(msg_buf, numbytes);
 
-    status = HAL_CAN_Receive(&hcan, CAN_FIFO0, timeout);
+    HAL_CAN_Receive_IT(&can_handle, CAN_FIFO0);
+}
 
-	led_on();
-    return status;
+void HAL_CAN_TxCpltCallback(CAN_HandleTypeDef *hcan)
+{
+
+}
+
+void HAL_CAN_ErrorCallback(CAN_HandleTypeDef *hcan)
+{
+    //error_assert(ERR_CANBUS);
 }
 
 
@@ -181,5 +202,12 @@ uint8_t is_can_msg_pending(uint8_t fifo)
     {
         return 0;
     }
-    return (__HAL_CAN_MSG_PENDING(&hcan, fifo) > 0);
+    return (__HAL_CAN_MSG_PENDING(&can_handle, fifo) > 0);
+}
+
+
+// Return reference to CAN handle
+CAN_HandleTypeDef* can_gethandle(void)
+{
+	return &can_handle;
 }
