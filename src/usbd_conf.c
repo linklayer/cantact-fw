@@ -54,7 +54,6 @@ __IO uint32_t remotewakeupon=0;
 static void SystemClockConfig_Resume(void);
 /* USER CODE END 1 */
 void HAL_PCDEx_SetConnectionState(PCD_HandleTypeDef *hpcd, uint8_t state);
-extern void SystemClock_Config(void);
 
 /*******************************************************************************
 		       LL Driver Callbacks (PCD -> USB Device Library)

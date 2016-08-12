@@ -16,7 +16,6 @@ enum can_bus_state bus_state;
 // Initialize CAN peripheral settings, but don't actually start the peripheral
 void can_init(void)
 {
-
     // Initialize GPIO for CAN transceiver 
     GPIO_InitTypeDef GPIO_InitStruct;
     __CAN_CLK_ENABLE();
@@ -54,7 +53,7 @@ void can_init(void)
 // Start the CAN peripheral
 void can_enable(void)
 {
-    if (bus_state == OFF_BUS) 
+    if (bus_state == OFF_BUS)
     {
         hcan.Init.Prescaler = prescaler;
         hcan.Init.Mode = CAN_MODE_NORMAL;
@@ -84,7 +83,7 @@ void can_disable(void)
         hcan.Instance->MCR |= CAN_MCR_RESET;
         bus_state = OFF_BUS;
     }
-    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_1, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(LED_BLUE, GPIO_PIN_RESET);
 }
 
 

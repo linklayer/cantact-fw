@@ -33,18 +33,16 @@ int main(void)
     HAL_GPIO_WritePin(GPIOB, GPIO_PIN_1, GPIO_PIN_RESET);
 
     CanRxMsgTypeDef rx_msg;
-    uint32_t status;
     uint8_t msg_buf[SLCAN_MTU];
 
-    // loop forever
-    for (;;) {
-		while (!is_can_msg_pending(CAN_FIFO0))
-			led_process();
-		status = can_rx(&rx_msg, 3);
-		if (status == HAL_OK) {
-			status = slcan_parse_frame((uint8_t *)&msg_buf, &rx_msg);
-			CDC_Transmit_FS(msg_buf, status);
+    while(1)
+    {
+		if(is_can_msg_pending(CAN_FIFO0) && can_rx(&rx_msg, 2) == HAL_OK)
+		{
+			uint32_t numbytes = slcan_parse_frame(msg_buf, &rx_msg);
+			CDC_Transmit_FS(msg_buf, numbytes);
 		}
+
 		led_process();
     }
 }

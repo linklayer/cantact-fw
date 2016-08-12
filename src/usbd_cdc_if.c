@@ -283,15 +283,17 @@ static int8_t CDC_Receive_FS (uint8_t* Buf, uint32_t *Len)
 uint8_t CDC_Transmit_FS(uint8_t* Buf, uint16_t Len)
 {
     uint8_t result = USBD_OK;
-    /* USER CODE BEGIN 8 */
+
     uint16_t i;
 
-    for (i=0; i < sizeof(UserTxBufferFS); i++) {
-	UserTxBufferFS[i] = 0;
+    for (i=0; i < sizeof(UserTxBufferFS); i++)
+    {
+    	UserTxBufferFS[i] = 0;
     }
 
-    for (i=0; i < Len; i++) {
-	UserTxBufferFS[i] = Buf[i];
+    for (i=0; i < Len; i++)
+    {
+    	UserTxBufferFS[i] = Buf[i];
     }
 
     USBD_CDC_SetTxBuffer(hUsbDevice_0, UserTxBufferFS, Len);
