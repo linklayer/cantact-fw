@@ -1,6 +1,11 @@
+//
+// can: initializes and provides methods to interact with the CAN peripheral
+//
+
 #include "stm32f0xx_hal.h"
 #include "can.h"
 #include "led.h"
+
 
 CAN_HandleTypeDef hcan;
 CAN_FilterConfTypeDef filter;
@@ -11,6 +16,23 @@ enum can_bus_state bus_state;
 // Initialize CAN peripheral settings, but don't actually start the peripheral
 void can_init(void)
 {
+
+    // Initialize GPIO for CAN transceiver 
+    GPIO_InitTypeDef GPIO_InitStruct;
+    __CAN_CLK_ENABLE();
+    __GPIOB_CLK_ENABLE();
+
+    //PB8     ------> CAN_RX
+    //PB9     ------> CAN_TX
+    GPIO_InitStruct.Pin = GPIO_PIN_8|GPIO_PIN_9;
+    GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+    GPIO_InitStruct.Pull = GPIO_NOPULL;
+    GPIO_InitStruct.Speed = GPIO_SPEED_LOW;
+    GPIO_InitStruct.Alternate = GPIO_AF4_CAN;
+    HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+
+    // Initialize default CAN filter configuration
     filter.FilterIdHigh = 0;
     filter.FilterIdLow = 0;
     filter.FilterMaskIdHigh = 0;

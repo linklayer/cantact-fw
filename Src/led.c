@@ -8,6 +8,21 @@
 static uint32_t led_laston = 0;
 static uint32_t led_lastoff = 0;
 
+
+// Initialize LED GPIOs
+void led_init()
+{
+    __GPIOB_CLK_ENABLE();
+    GPIO_InitTypeDef GPIO_InitStruct;
+    GPIO_InitStruct.Pin = GPIO_PIN_0 | GPIO_PIN_1;
+    GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+    GPIO_InitStruct.Pull = GPIO_PULLUP;
+    GPIO_InitStruct.Speed = GPIO_SPEED_MEDIUM;
+    GPIO_InitStruct.Alternate = 0;
+    HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+}
+
+
 // Attempt to turn on status LED
 void led_on(void)
 {

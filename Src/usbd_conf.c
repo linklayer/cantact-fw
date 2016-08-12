@@ -35,6 +35,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f0xx.h"
 #include "stm32f0xx_hal.h"
+#include "system.h"
 #include "usbd_def.h"
 #include "usbd_core.h"
 /* Private typedef -----------------------------------------------------------*/
@@ -502,7 +503,7 @@ void USBD_static_free(void *p)
   */
 static void SystemClockConfig_Resume(void)
 {
-	SystemClock_Config();
+    system_init();
 }
 /* USER CODE END 4 */
 

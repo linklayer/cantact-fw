@@ -4,7 +4,7 @@
 
 #include "stm32f0xx_hal.h"
 #include "stm32f0xx.h"
-#include "stm32f0xx_it.h"
+#include "interrupts.h"
 
 extern PCD_HandleTypeDef hpcd_USB_FS;
 
