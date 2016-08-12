@@ -78,7 +78,7 @@ DRIVER_PATH = Drivers/STM32F0xx_HAL_Driver
 INCLUDES = -I$(CMSIS_PATH)/Include
 INCLUDES += -I$(CMSIS_DEVICE_PATH)/Include
 INCLUDES += -I$(DRIVER_PATH)/Inc
-INCLUDES += -IInc
+INCLUDES += -Iinc
 INCLUDES += $(USB_INCLUDES)
 INCLUDES += $(USER_INCLUDES)
 
@@ -166,10 +166,10 @@ $(BUILD_DIR)/$(TARGET).elf: $(OBJECTS) $(USB_OBJECTS) $(CUBELIB)
 		-Map=$(BUILD_DIR)/$(TARGET).map
 	$(SIZE) $@
 
-$(BUILD_DIR)/%.o: Src/%.c | $(BUILD_DIR)
+$(BUILD_DIR)/%.o: src/%.c | $(BUILD_DIR)
 	$(CC) $(CFLAGS) -Os -c -o $@ $^
 
-$(BUILD_DIR)/%.o: Src/%.s | $(BUILD_DIR)
+$(BUILD_DIR)/%.o: src/%.s | $(BUILD_DIR)
 	$(CC) $(CFLAGS) -c -o $@ $^
 
 $(BUILD_DIR):
