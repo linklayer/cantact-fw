@@ -14,6 +14,9 @@ static CAN_FilterConfTypeDef filter;
 static uint32_t prescaler;
 enum can_bus_state bus_state;
 
+static CanRxMsgTypeDef can_rx_msg;
+static CanTxMsgTypeDef can_tx_msg;
+
 
 // Initialize CAN peripheral settings, but don't actually start the peripheral
 void can_init(void)
@@ -57,6 +60,10 @@ void can_enable(void)
 {
     if (bus_state == OFF_BUS)
     {
+
+    	HAL_NVIC_SetPriority(CEC_CAN_IRQn, 0, 0);
+    	HAL_NVIC_EnableIRQ(CEC_CAN_IRQn);
+
     	can_handle.Init.Prescaler = prescaler;
     	can_handle.Init.Mode = CAN_MODE_NORMAL;
     	can_handle.Init.SJW = CAN_SJW_1TQ;
@@ -68,13 +75,14 @@ void can_enable(void)
     	can_handle.Init.NART = DISABLE;
     	can_handle.Init.RFLM = DISABLE;
     	can_handle.Init.TXFP = DISABLE;
-    	can_handle.pTxMsg = NULL;
+    	can_handle.pTxMsg = &can_tx_msg;
+    	can_handle.pRxMsg = &can_rx_msg;
         HAL_CAN_Init(&can_handle);
         HAL_CAN_ConfigFilter(&can_handle, &filter);
         bus_state = ON_BUS;
 
-    	HAL_NVIC_SetPriority(CEC_CAN_IRQn, 1, 0);
-    	HAL_NVIC_EnableIRQ(CEC_CAN_IRQn);
+        led_blue_on();
+
     	HAL_CAN_Receive_IT(&can_handle, CAN_FIFO0);
 
     }
@@ -166,24 +174,24 @@ uint32_t can_tx(CanTxMsgTypeDef *tx_msg)
     can_handle.pTxMsg = tx_msg;
     status = HAL_CAN_Transmit_IT(&can_handle);
 
-	led_blue_on();
+	//led_blue_on();
     return status;
 }
 
 // CAN rxcomplete callback TODO: Move to interrupts?
-void HAL_CAN_RxCpltCallback(CAN_HandleTypeDef *hcan)
+void HAL_CAN_RxCpltCallback(CAN_HandleTypeDef* hcan)
 {
 	led_blue_on();
 
-	// TODO: Store this message in a buffer and defer CDC send to main loop
+//	// TODO: Store this message in a buffer and defer CDC send to main loop
 	CanRxMsgTypeDef* rxmsg = hcan->pRxMsg;
     uint8_t msg_buf[SLCAN_MTU];
 	uint32_t numbytes = slcan_parse_frame(msg_buf, rxmsg);
 	CDC_Transmit_FS(msg_buf, numbytes);
 
-    HAL_CAN_Receive_IT(&can_handle, CAN_FIFO0);
+	HAL_CAN_Receive_IT(hcan, CAN_FIFO0);
 }
-
+/*
 void HAL_CAN_TxCpltCallback(CAN_HandleTypeDef *hcan)
 {
 
@@ -193,7 +201,7 @@ void HAL_CAN_ErrorCallback(CAN_HandleTypeDef *hcan)
 {
     //error_assert(ERR_CANBUS);
 }
-
+*/
 
 // Check if a CAN message has been received and is waiting in the FIFO
 uint8_t is_can_msg_pending(uint8_t fifo)

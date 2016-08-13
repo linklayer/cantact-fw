@@ -5,7 +5,7 @@
 #include "stm32f0xx_hal.h"
 #include "led.h"
 
-static uint32_t led_laston = 0;
+static volatile uint32_t led_laston = 0;
 static uint32_t led_lastoff = 0;
 
 

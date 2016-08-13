@@ -3,11 +3,11 @@
 //
 
 #include "stm32f0xx_hal.h"
-#include "stm32f0xx.h"
 #include "interrupts.h"
+#include "can.h"
+#include "led.h"
 
 extern PCD_HandleTypeDef hpcd_USB_FS;
-
 
 // Handle USB interrupts
 void USB_IRQHandler(void)
@@ -27,5 +27,5 @@ void SysTick_Handler(void)
 // Handle CAN interrupts
 void CEC_CAN_IRQHandler(void)
 {
-  HAL_CAN_IRQHandler(can_gethandle());
+    HAL_CAN_IRQHandler(can_gethandle());
 }
