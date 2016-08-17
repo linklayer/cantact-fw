@@ -14,6 +14,9 @@ static CAN_FilterConfTypeDef filter;
 static uint32_t prescaler;
 enum can_bus_state bus_state;
 
+static volatile uint8_t process_recv = 0;
+static volatile uint8_t process_tx = 0;
+
 static CanRxMsgTypeDef can_rx_msg;
 static CanTxMsgTypeDef can_tx_msg;
 
@@ -178,17 +181,41 @@ uint32_t can_tx(CanTxMsgTypeDef *tx_msg)
     return status;
 }
 
+
+CanTxMsgTypeDef localmsg;
+
+void can_process(void)
+{
+    if(process_recv)
+    {
+        CanRxMsgTypeDef* rxmsg = can_handle.pRxMsg;
+        uint8_t msg_buf[SLCAN_MTU];
+        uint32_t numbytes = slcan_parse_frame(msg_buf, rxmsg);
+        CDC_Transmit_FS(msg_buf, numbytes);
+
+        process_recv = 0;
+    }
+
+    if(process_tx)
+    {
+        can_tx(&localmsg);
+
+        process_tx = 0;
+    }
+
+}
+
+void can_preptx(CanTxMsgTypeDef *msg)
+{
+    localmsg = *msg;
+    process_tx = 1;
+}
+
 // CAN rxcomplete callback TODO: Move to interrupts?
 void HAL_CAN_RxCpltCallback(CAN_HandleTypeDef* hcan)
 {
 	led_blue_on();
-
-//	// TODO: Store this message in a buffer and defer CDC send to main loop
-	CanRxMsgTypeDef* rxmsg = hcan->pRxMsg;
-    uint8_t msg_buf[SLCAN_MTU];
-	uint32_t numbytes = slcan_parse_frame(msg_buf, rxmsg);
-	CDC_Transmit_FS(msg_buf, numbytes);
-
+    process_recv = 1;
 	HAL_CAN_Receive_IT(hcan, CAN_FIFO0);
 }
 /*

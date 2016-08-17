@@ -235,7 +235,7 @@ static int8_t CDC_Control_FS  (uint8_t cmd, uint8_t* pbuf, uint16_t length)
  *
  *         @note
  *         This function will block any OUT packet reception on USB endpoint
- *         untill exiting this function. If you exit this function before transfer
+ *         until exiting this function. If you exit this function before transfer
  *         is complete on CDC interface (ie. using DMA controller) it will result
  *         in receiving more data while previous ones are still not sent.
  *
@@ -247,18 +247,43 @@ static int8_t CDC_Control_FS  (uint8_t cmd, uint8_t* pbuf, uint16_t length)
 uint8_t slcan_str[SLCAN_MTU];
 uint8_t slcan_str_index = 0;
 
+
+static volatile uint8_t packet_ready = 0;
+static volatile uint8_t packetbuf[256];
+
+// Process reccvd packet
+void usb_process(void)
+{
+    if(packet_ready)
+    {
+        slcan_parse_str(slcan_str, slcan_str_index);
+        packet_ready = 0;
+        slcan_str_index = 0;
+    }
+}
+
 static int8_t CDC_Receive_FS (uint8_t* Buf, uint32_t *Len)
 {
-    /* USER CODE BEGIN 7 */
     uint8_t n = *Len;
     uint8_t i;
+
+
+    // TODO: Rewrite all of this with a FIFO! This is bad.
+    // hard max at MTU
+    if(n>30)
+    {
+        n = 30;
+    }
+
+
     for (i = 0; i < n; i++) {
-	if (Buf[i] == '\r') {
-	    slcan_parse_str(slcan_str, slcan_str_index);
-	    slcan_str_index = 0;
-	} else {
-	    slcan_str[slcan_str_index++] = Buf[i];
-	}
+       if (Buf[i] == '\r') {
+//           slcan_parse_str(slcan_str, slcan_str_index);
+            packet_ready = 1;
+//           slcan_str_index = 0;
+       } else {
+           slcan_str[slcan_str_index++] = Buf[i];
+       }
     }
 
     // prepare for next read
@@ -266,7 +291,6 @@ static int8_t CDC_Receive_FS (uint8_t* Buf, uint32_t *Len)
     USBD_CDC_ReceivePacket(hUsbDevice_0);
 
     return (USBD_OK);
-    /* USER CODE END 7 */
 }
 
 /**

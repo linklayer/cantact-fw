@@ -45,6 +45,7 @@
 /* Exported cariables --------------------------------------------------------*/
 extern USBD_CDC_ItfTypeDef  USBD_Interface_fops_FS;
 
+void usb_process(void);
 /* Exported macro ------------------------------------------------------------*/
 /* Exported functions ------------------------------------------------------- */
 /** @defgroup USBD_CDC_IF_Exported_FunctionsPrototype
