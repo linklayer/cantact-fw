@@ -181,7 +181,7 @@ uint32_t can_tx(CanTxMsgTypeDef *tx_msg)
 
 
 CanTxMsgTypeDef localmsg;
-static volatile uint8_t can_rearm = 0;
+static volatile uint8_t can_rearm_rx = 0;
 
 
 void can_process(void)
@@ -198,25 +198,31 @@ void can_process(void)
 
     if(process_tx)
     {
-        can_tx(&localmsg);
+        uint32_t res = can_tx(&localmsg);
 
-        process_tx = 0;
+        // If result okay, we're done. Otherwise retry on the next time around.
+        if(res == HAL_OK)
+        {
+            process_tx = 0;
+        }
+
     }
 
 
     // If we were trying to transmit while starting the next rx cycle, defer to here
-    if(can_rearm > 0)
+    if(can_rearm_rx > 0)
     {
         uint32_t res = HAL_CAN_Receive_IT(&can_handle, CAN_FIFO0);
+        process_tx = 0;
         if(res != HAL_OK)
         {
             led_green_off();
-            can_rearm = 1;
+            can_rearm_rx = 1;
         }
         else
         {
             led_green_on();
-            can_rearm = 0;
+            can_rearm_rx = 0;
         }
 
     }
@@ -238,7 +244,7 @@ void HAL_CAN_RxCpltCallback(CAN_HandleTypeDef* hcan)
 
     if(res != HAL_OK)
     {
-        can_rearm = 1;
+        can_rearm_rx = 1;
     }
 }
 /*
