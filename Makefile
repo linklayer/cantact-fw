@@ -11,7 +11,7 @@
 BUILD_NUMBER ?= 0
 
 # SOURCES: list of sources in the user application
-SOURCES = main.c usbd_conf.c usbd_cdc_if.c usb_device.c usbd_desc.c stm32f0xx_hal_msp.c stm32f0xx_it.c system_stm32f0xx.c can.c slcan.c led.c
+SOURCES = main.c system.c usbd_conf.c usbd_cdc_if.c usb_device.c usbd_desc.c interrupts.c system_stm32f0xx.c can.c slcan.c led.c
 
 # TARGET: name of the user application
 TARGET = CANtact-b$(BUILD_NUMBER)
@@ -34,6 +34,11 @@ USB_INCLUDES += -IMiddlewares/ST/STM32_USB_Device_Library/Class/CDC/Inc
 
 # USER_CFLAGS: user C flags (enable warnings, enable debug info)
 USER_CFLAGS = -Wall -g -ffunction-sections -fdata-sections -Os
+
+ifeq ($(INTERNAL_OSCILLATOR), 1)
+    USER_CFLAGS += -DINTERNAL_OSCILLATOR
+endif
+
 # USER_LDFLAGS:  user LD flags
 USER_LDFLAGS = -fno-exceptions -ffunction-sections -fdata-sections -Wl,--gc-sections
 
@@ -73,7 +78,7 @@ DRIVER_PATH = Drivers/STM32F0xx_HAL_Driver
 INCLUDES = -I$(CMSIS_PATH)/Include
 INCLUDES += -I$(CMSIS_DEVICE_PATH)/Include
 INCLUDES += -I$(DRIVER_PATH)/Inc
-INCLUDES += -IInc
+INCLUDES += -Iinc
 INCLUDES += $(USB_INCLUDES)
 INCLUDES += $(USER_INCLUDES)
 
@@ -161,10 +166,10 @@ $(BUILD_DIR)/$(TARGET).elf: $(OBJECTS) $(USB_OBJECTS) $(CUBELIB)
 		-Map=$(BUILD_DIR)/$(TARGET).map
 	$(SIZE) $@
 
-$(BUILD_DIR)/%.o: Src/%.c | $(BUILD_DIR)
+$(BUILD_DIR)/%.o: src/%.c | $(BUILD_DIR)
 	$(CC) $(CFLAGS) -Os -c -o $@ $^
 
-$(BUILD_DIR)/%.o: Src/%.s | $(BUILD_DIR)
+$(BUILD_DIR)/%.o: src/%.s | $(BUILD_DIR)
 	$(CC) $(CFLAGS) -c -o $@ $^
 
 $(BUILD_DIR):
