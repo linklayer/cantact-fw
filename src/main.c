@@ -24,8 +24,17 @@ int main(void)
     led_green_on();
     led_blue_blink(3);
 
+    uint32_t last_blinkgreen = 0;
+
     while(1)
     {
+
+        if(HAL_GetTick() - last_blinkgreen > 1000)
+        { 
+            HAL_GPIO_TogglePin(LED_GREEN);
+            last_blinkgreen = HAL_GetTick();
+        }
+
 		led_process();
         can_process();
         usb_process();
