@@ -73,7 +73,7 @@ void can_enable(void)
     	can_handle.Init.BS1 = CAN_BS1_4TQ;
     	can_handle.Init.BS2 = CAN_BS2_3TQ;
     	can_handle.Init.TTCM = DISABLE;
-    	can_handle.Init.ABOM = DISABLE;
+    	can_handle.Init.ABOM = ENABLE;
     	can_handle.Init.AWUM = DISABLE;
     	can_handle.Init.NART = DISABLE;
     	can_handle.Init.RFLM = DISABLE;
@@ -103,9 +103,7 @@ void can_disable(void)
 
     	HAL_NVIC_DisableIRQ(CEC_CAN_IRQn);
     	HAL_CAN_DeInit(&can_handle);
-
     }
-    HAL_GPIO_WritePin(LED_BLUE, GPIO_PIN_RESET);
 }
 
 
@@ -183,6 +181,8 @@ uint32_t can_tx(CanTxMsgTypeDef *tx_msg)
 
 
 CanTxMsgTypeDef localmsg;
+static volatile uint8_t can_rearm = 0;
+
 
 void can_process(void)
 {
@@ -203,6 +203,24 @@ void can_process(void)
         process_tx = 0;
     }
 
+
+    // If we were trying to transmit while starting the next rx cycle, defer to here
+    if(can_rearm)
+    {
+        uint32_t res = HAL_CAN_Receive_IT(&can_handle, CAN_FIFO0);
+        if(res != HAL_OK)
+        {
+            led_green_off();
+            can_rearm = 1;
+        }
+        else
+        {
+            led_green_on();
+            can_rearm = 0;
+        }
+
+    }
+
 }
 
 void can_preptx(CanTxMsgTypeDef *msg)
@@ -216,7 +234,12 @@ void HAL_CAN_RxCpltCallback(CAN_HandleTypeDef* hcan)
 {
 	led_blue_on();
     process_recv = 1;
-	HAL_CAN_Receive_IT(hcan, CAN_FIFO0);
+	uint32_t res = HAL_CAN_Receive_IT(hcan, CAN_FIFO0);
+
+    if(res != HAL_OK)
+    {
+        can_rearm = 1;
+    }
 }
 /*
 void HAL_CAN_TxCpltCallback(CAN_HandleTypeDef *hcan)
