@@ -2,8 +2,8 @@
   ******************************************************************************
   * @file    stm32f0xx_hal_pcd_ex.c
   * @author  MCD Application Team
-  * @version V1.1.0
-  * @date    03-Oct-2014
+  * @version V1.4.0
+  * @date    27-May-2016
   * @brief   Extended PCD HAL module driver.
   *          This file provides firmware functions to manage the following 
   *          functionalities of the USB Peripheral Controller:
@@ -12,7 +12,7 @@
   ******************************************************************************
   * @attention
   *
-  * <h2><center>&copy; COPYRIGHT(c) 2014 STMicroelectronics</center></h2>
+  * <h2><center>&copy; COPYRIGHT(c) 2016 STMicroelectronics</center></h2>
   *
   * Redistribution and use in source and binary forms, with or without modification,
   * are permitted provided that the following conditions are met:
@@ -44,34 +44,37 @@
 
 #ifdef HAL_PCD_MODULE_ENABLED
 
-#if defined(STM32F042x6) || defined(STM32F048xx) || defined(STM32F072xB) || defined(STM32F078xx)
+#if defined(STM32F042x6) || defined(STM32F048xx) || defined(STM32F072xB) || defined(STM32F078xx) || defined(STM32F070xB)|| defined(STM32F070x6)
 
 /** @addtogroup STM32F0xx_HAL_Driver
   * @{
   */
 
-/** @defgroup PCDEx PCDEx Extended HAL module driver
-  * @brief PCDEx PCDEx Extended HAL module driver
+/** @defgroup PCDEx PCDEx
+  * @brief PCD Extended HAL module driver
   * @{
   */
+
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
 /* Private function prototypes -----------------------------------------------*/
 /* Exported functions ---------------------------------------------------------*/
-
 /** @defgroup PCDEx_Exported_Functions PCDEx Exported Functions
   * @{
   */
 
-/** @defgroup PCDEx_Exported_Functions_Group1 Initialization and de-initialization functions 
- *  @brief    Initialization and Configuration functions 
- *
+/** @defgroup PCDEx_Exported_Functions_Group1 Peripheral Control functions
+  * @brief    PCDEx control functions 
+  *
 @verbatim
  ===============================================================================
-                 ##### Peripheral extended features methods #####
+              ##### Extended Peripheral Control functions #####
  ===============================================================================
+    [..]  This section provides functions allowing to:
+      (+) Update PMA configuration
+
 @endverbatim
   * @{
   */
@@ -116,7 +119,7 @@ HAL_StatusTypeDef  HAL_PCDEx_PMAConfig(PCD_HandleTypeDef *hpcd,
   {
     /*Single Buffer*/
     ep->doublebuffer = 0;
-    /*Configure te PMA*/
+    /*Configure the PMA*/
     ep->pmaadress = (uint16_t)pmaadress;
   }
   else /*USB_DBL_BUF*/
@@ -125,7 +128,7 @@ HAL_StatusTypeDef  HAL_PCDEx_PMAConfig(PCD_HandleTypeDef *hpcd,
     ep->doublebuffer = 1;
     /*Configure the PMA*/
     ep->pmaaddr0 =  pmaadress & 0xFFFF;
-    ep->pmaaddr1 =  (pmaadress & 0xFFFF0000) >> 16;
+    ep->pmaaddr1 =  (pmaadress & 0xFFFF0000U) >> 16;
   }
   
   return HAL_OK;
@@ -146,7 +149,7 @@ HAL_StatusTypeDef  HAL_PCDEx_PMAConfig(PCD_HandleTypeDef *hpcd,
   * @}
   */
 
-#endif /* STM32F042x6 || STM32F072xB || STM32F078xx */
+#endif /* STM32F042x6 || STM32F072xB || STM32F078xx || STM32F070xB || STM32F070x6 */
 
 #endif /* HAL_PCD_MODULE_ENABLED */
 

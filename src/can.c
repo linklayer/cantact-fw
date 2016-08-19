@@ -205,7 +205,7 @@ void can_process(void)
 
 
     // If we were trying to transmit while starting the next rx cycle, defer to here
-    if(can_rearm)
+    if(can_rearm > 0)
     {
         uint32_t res = HAL_CAN_Receive_IT(&can_handle, CAN_FIFO0);
         if(res != HAL_OK)

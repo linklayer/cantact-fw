@@ -2,13 +2,13 @@
   ******************************************************************************
   * @file    stm32f0xx_hal_pwr_ex.h
   * @author  MCD Application Team
-  * @version V1.1.0
-  * @date    03-Oct-2014
+  * @version V1.4.0
+  * @date    27-May-2016
   * @brief   Header file of PWR HAL Extension module.
   ******************************************************************************
   * @attention
   *
-  * <h2><center>&copy; COPYRIGHT(c) 2014 STMicroelectronics</center></h2>
+  * <h2><center>&copy; COPYRIGHT(c) 2016 STMicroelectronics</center></h2>
   *
   * Redistribution and use in source and binary forms, with or without modification,
   * are permitted provided that the following conditions are met:
@@ -94,14 +94,14 @@ typedef struct
   */
 #if defined (STM32F071xB) || defined (STM32F072xB) || defined (STM32F078xx) || \
     defined (STM32F091xC) || defined (STM32F098xx)
-#define PWR_WAKEUP_PIN1                     ((uint32_t)0x00)
-#define PWR_WAKEUP_PIN2                     ((uint32_t)0x01)
-#define PWR_WAKEUP_PIN3                     ((uint32_t)0x02)
-#define PWR_WAKEUP_PIN4                     ((uint32_t)0x03)
-#define PWR_WAKEUP_PIN5                     ((uint32_t)0x04)
-#define PWR_WAKEUP_PIN6                     ((uint32_t)0x05)
-#define PWR_WAKEUP_PIN7                     ((uint32_t)0x06)
-#define PWR_WAKEUP_PIN8                     ((uint32_t)0x07)
+#define PWR_WAKEUP_PIN1                     ((uint32_t)PWR_CSR_EWUP1)
+#define PWR_WAKEUP_PIN2                     ((uint32_t)PWR_CSR_EWUP2)
+#define PWR_WAKEUP_PIN3                     ((uint32_t)PWR_CSR_EWUP3)
+#define PWR_WAKEUP_PIN4                     ((uint32_t)PWR_CSR_EWUP4)
+#define PWR_WAKEUP_PIN5                     ((uint32_t)PWR_CSR_EWUP5)
+#define PWR_WAKEUP_PIN6                     ((uint32_t)PWR_CSR_EWUP6)
+#define PWR_WAKEUP_PIN7                     ((uint32_t)PWR_CSR_EWUP7)
+#define PWR_WAKEUP_PIN8                     ((uint32_t)PWR_CSR_EWUP8)
 
 #define IS_PWR_WAKEUP_PIN(PIN) (((PIN) == PWR_WAKEUP_PIN1) || \
                                 ((PIN) == PWR_WAKEUP_PIN2) || \
@@ -111,14 +111,45 @@ typedef struct
                                 ((PIN) == PWR_WAKEUP_PIN6) || \
                                 ((PIN) == PWR_WAKEUP_PIN7) || \
                                 ((PIN) == PWR_WAKEUP_PIN8))
-#else 
-#define PWR_WAKEUP_PIN1                     ((uint32_t)0x00)
-#define PWR_WAKEUP_PIN2                     ((uint32_t)0x01)
+
+#elif defined(STM32F030xC) || defined (STM32F070xB)
+#define PWR_WAKEUP_PIN1                     ((uint32_t)PWR_CSR_EWUP1)
+#define PWR_WAKEUP_PIN2                     ((uint32_t)PWR_CSR_EWUP2)
+#define PWR_WAKEUP_PIN4                     ((uint32_t)PWR_CSR_EWUP4)
+#define PWR_WAKEUP_PIN5                     ((uint32_t)PWR_CSR_EWUP5)
+#define PWR_WAKEUP_PIN6                     ((uint32_t)PWR_CSR_EWUP6)
+#define PWR_WAKEUP_PIN7                     ((uint32_t)PWR_CSR_EWUP7)
+
+#define IS_PWR_WAKEUP_PIN(PIN) (((PIN) == PWR_WAKEUP_PIN1) || \
+                                ((PIN) == PWR_WAKEUP_PIN2) || \
+                                ((PIN) == PWR_WAKEUP_PIN4) || \
+                                ((PIN) == PWR_WAKEUP_PIN5) || \
+                                ((PIN) == PWR_WAKEUP_PIN6) || \
+                                ((PIN) == PWR_WAKEUP_PIN7))
+
+#elif defined(STM32F042x6) || defined (STM32F048xx)
+#define PWR_WAKEUP_PIN1                     ((uint32_t)PWR_CSR_EWUP1)
+#define PWR_WAKEUP_PIN2                     ((uint32_t)PWR_CSR_EWUP2)
+#define PWR_WAKEUP_PIN4                     ((uint32_t)PWR_CSR_EWUP4)
+#define PWR_WAKEUP_PIN6                     ((uint32_t)PWR_CSR_EWUP6)
+#define PWR_WAKEUP_PIN7                     ((uint32_t)PWR_CSR_EWUP7)
+
+#define IS_PWR_WAKEUP_PIN(PIN) (((PIN) == PWR_WAKEUP_PIN1) || \
+                                ((PIN) == PWR_WAKEUP_PIN2) || \
+                                ((PIN) == PWR_WAKEUP_PIN4) || \
+                                ((PIN) == PWR_WAKEUP_PIN6) || \
+                                ((PIN) == PWR_WAKEUP_PIN7))
+
+#else
+#define PWR_WAKEUP_PIN1                     ((uint32_t)PWR_CSR_EWUP1)
+#define PWR_WAKEUP_PIN2                     ((uint32_t)PWR_CSR_EWUP2)
+
 
 #define IS_PWR_WAKEUP_PIN(PIN) (((PIN) == PWR_WAKEUP_PIN1) || \
                                 ((PIN) == PWR_WAKEUP_PIN2))
-#endif /* defined (STM32F071xB) || defined (STM32F072xB) || defined (STM32F078xx) || */
-       /* defined (STM32F091xC) || defined (STM32F098xx) */
+
+#endif
+
 /**
   * @}
   */
@@ -130,7 +161,7 @@ typedef struct
     defined (STM32F071xB) || defined (STM32F072xB) || \
     defined (STM32F091xC)
 
-#define PWR_EXTI_LINE_PVD                   ((uint32_t)0x00010000)  /*!< External interrupt line 16 Connected to the PVD EXTI Line */
+#define PWR_EXTI_LINE_PVD                   ((uint32_t)EXTI_IMR_MR16)  /*!< External interrupt line 16 Connected to the PVD EXTI Line */
 
 #endif /* defined (STM32F031x6) || defined (STM32F042x6) || defined (STM32F051x8) || */
        /* defined (STM32F071xB) || defined (STM32F072xB) || */
@@ -140,11 +171,11 @@ typedef struct
     defined (STM32F071xB) || defined (STM32F072xB) || defined (STM32F078xx) || \
     defined (STM32F091xC) || defined (STM32F098xx)
 
-#define PWR_EXTI_LINE_VDDIO2                ((uint32_t)0x80000000)  /*!< External interrupt line 31 Connected to the Vddio2 Monitor EXTI Line */
+#define PWR_EXTI_LINE_VDDIO2                ((uint32_t)EXTI_IMR_MR31)  /*!< External interrupt line 31 Connected to the Vddio2 Monitor EXTI Line */
 
-#endif /* defined (STM32F042x6) || defined (STM32F048xx) || \
+#endif /* defined (STM32F042x6) || defined (STM32F048xx) ||\
           defined (STM32F071xB) || defined (STM32F072xB) || defined (STM32F078xx) || \
-          defined (STM32F091xC) || defined (STM32F098xx) */
+          defined (STM32F091xC) || defined (STM32F098xx) ||*/
 /**
   * @}
   */
@@ -204,6 +235,10 @@ typedef struct
 #define PWR_FLAG_SB                         PWR_CSR_SBF
 #define PWR_FLAG_PVDO                       PWR_CSR_PVDO
 #define PWR_FLAG_VREFINTRDY                 PWR_CSR_VREFINTRDYF
+#elif defined (STM32F070x6) || defined (STM32F070xB) || defined (STM32F030xC)
+#define PWR_FLAG_WU                         PWR_CSR_WUF
+#define PWR_FLAG_SB                         PWR_CSR_SBF
+#define PWR_FLAG_VREFINTRDY                 PWR_CSR_VREFINTRDYF
 #else
 #define PWR_FLAG_WU                         PWR_CSR_WUF
 #define PWR_FLAG_SB                         PWR_CSR_SBF
@@ -251,23 +286,41 @@ typedef struct
 #define __HAL_PWR_PVD_EXTI_DISABLE_EVENT()  (EXTI->EMR &= ~(PWR_EXTI_LINE_PVD))
 
 /**
-  * @brief  PVD EXTI line configuration: clear falling edge and rising edge trigger.
+  * @brief Disable the PVD Extended Interrupt Rising Trigger.
   * @retval None.
   */
-#define __HAL_PWR_PVD_EXTI_CLEAR_EGDE_TRIGGER()   EXTI->FTSR &= ~(PWR_EXTI_LINE_PVD); \
-                                                  EXTI->RTSR &= ~(PWR_EXTI_LINE_PVD)
+#define __HAL_PWR_PVD_EXTI_DISABLE_RISING_EDGE()  CLEAR_BIT(EXTI->RTSR, PWR_EXTI_LINE_PVD)
+
+/**
+  * @brief Disable the PVD Extended Interrupt Falling Trigger.
+  * @retval None.
+  */
+#define __HAL_PWR_PVD_EXTI_DISABLE_FALLING_EDGE()  CLEAR_BIT(EXTI->FTSR, PWR_EXTI_LINE_PVD)
+
+/**
+  * @brief Disable the PVD Extended Interrupt Rising & Falling Trigger.
+  * @retval None
+  */
+#define __HAL_PWR_PVD_EXTI_DISABLE_RISING_FALLING_EDGE()  __HAL_PWR_PVD_EXTI_DISABLE_RISING_EDGE();__HAL_PWR_PVD_EXTI_DISABLE_FALLING_EDGE();
+
 
 /**
   * @brief  PVD EXTI line configuration: set falling edge trigger.
   * @retval None.
   */
-#define __HAL_PWR_PVD_EXTI_SET_FALLING_EGDE_TRIGGER()  EXTI->FTSR |= (PWR_EXTI_LINE_PVD)
+#define __HAL_PWR_PVD_EXTI_ENABLE_FALLING_EDGE()  EXTI->FTSR |= (PWR_EXTI_LINE_PVD)
 
 /**
   * @brief  PVD EXTI line configuration: set rising edge trigger.
   * @retval None.
   */
-#define __HAL_PWR_PVD_EXTI_SET_RISING_EDGE_TRIGGER()   EXTI->RTSR |= (PWR_EXTI_LINE_PVD)
+#define __HAL_PWR_PVD_EXTI_ENABLE_RISING_EDGE()   EXTI->RTSR |= (PWR_EXTI_LINE_PVD)
+
+/**
+  * @brief  Enable the PVD Extended Interrupt Rising & Falling Trigger.
+  * @retval None
+  */
+#define __HAL_PWR_PVD_EXTI_ENABLE_RISING_FALLING_EDGE()   __HAL_PWR_PVD_EXTI_ENABLE_RISING_EDGE();__HAL_PWR_PVD_EXTI_ENABLE_FALLING_EDGE();
 
 /**
   * @brief Check whether the specified PVD EXTI interrupt flag is set or not.
@@ -311,14 +364,17 @@ typedef struct
   * @brief  Vddio2 Monitor EXTI line configuration: clear falling edge and rising edge trigger.
   * @retval None.
   */
-#define __HAL_PWR_VDDIO2_EXTI_CLEAR_EGDE_TRIGGER()    EXTI->FTSR &= ~(PWR_EXTI_LINE_VDDIO2); \
-                                                      EXTI->RTSR &= ~(PWR_EXTI_LINE_VDDIO2)
-
+#define __HAL_PWR_VDDIO2_EXTI_DISABLE_FALLING_EDGE()                 \
+                        do{                                          \
+                            EXTI->FTSR &= ~(PWR_EXTI_LINE_VDDIO2);   \
+                            EXTI->RTSR &= ~(PWR_EXTI_LINE_VDDIO2);   \
+                          } while(0)
+                    
 /**
   * @brief  Vddio2 Monitor EXTI line configuration: set falling edge trigger.
   * @retval None.
   */
-#define __HAL_PWR_VDDIO2_EXTI_SET_FALLING_EGDE_TRIGGER()  EXTI->FTSR |= (PWR_EXTI_LINE_VDDIO2)
+#define __HAL_PWR_VDDIO2_EXTI_ENABLE_FALLING_EDGE()  EXTI->FTSR |= (PWR_EXTI_LINE_VDDIO2)
 
 /**
   * @brief Check whether the specified VDDIO2 monitor EXTI interrupt flag is set or not.
@@ -339,7 +395,7 @@ typedef struct
 #define __HAL_PWR_VDDIO2_EXTI_GENERATE_SWIT()         (EXTI->SWIER |= (PWR_EXTI_LINE_VDDIO2))
 
 
-#endif /* defined (STM32F042x6) || defined (STM32F048xx) || \
+#endif /* defined (STM32F042x6) || defined (STM32F048xx) ||\
           defined (STM32F071xB) || defined (STM32F072xB) || defined (STM32F078xx) || \
           defined (STM32F091xC) || defined (STM32F098xx) */
 
@@ -369,8 +425,8 @@ void HAL_PWR_PVDCallback(void);
 #if defined (STM32F042x6) || defined (STM32F048xx) || \
     defined (STM32F071xB) || defined (STM32F072xB) || defined (STM32F078xx) || \
     defined (STM32F091xC) || defined (STM32F098xx)
-void HAL_PWR_Vddio2Monitor_IRQHandler(void);
-void HAL_PWR_Vddio2MonitorCallback(void);
+void HAL_PWREx_Vddio2Monitor_IRQHandler(void);
+void HAL_PWREx_Vddio2MonitorCallback(void);
 #endif /* defined (STM32F042x6) || defined (STM32F048xx) || \
           defined (STM32F071xB) || defined (STM32F072xB) || defined (STM32F078xx) || \
           defined (STM32F091xC) || defined (STM32F098xx) */
@@ -379,7 +435,7 @@ void HAL_PWR_Vddio2MonitorCallback(void);
 #if defined (STM32F031x6) || defined (STM32F042x6) || defined (STM32F051x8) || \
     defined (STM32F071xB) || defined (STM32F072xB) || \
     defined (STM32F091xC)
-void HAL_PWR_PVDConfig(PWR_PVDTypeDef *sConfigPVD);
+void HAL_PWR_ConfigPVD(PWR_PVDTypeDef *sConfigPVD);
 void HAL_PWR_EnablePVD(void);
 void HAL_PWR_DisablePVD(void);
 #endif /* defined (STM32F031x6) || defined (STM32F042x6) || defined (STM32F051x8) || */
@@ -389,8 +445,8 @@ void HAL_PWR_DisablePVD(void);
 #if defined (STM32F042x6) || defined (STM32F048xx) || \
     defined (STM32F071xB) || defined (STM32F072xB) || defined (STM32F078xx) || \
     defined (STM32F091xC) || defined (STM32F098xx)
-void HAL_PWR_EnableVddio2Monitor(void);
-void HAL_PWR_DisableVddio2Monitor(void);
+void HAL_PWREx_EnableVddio2Monitor(void);
+void HAL_PWREx_DisableVddio2Monitor(void);
 #endif /* defined (STM32F042x6) || defined (STM32F048xx) || \
           defined (STM32F071xB) || defined (STM32F072xB) || defined (STM32F078xx) || \
           defined (STM32F091xC) || defined (STM32F098xx) */

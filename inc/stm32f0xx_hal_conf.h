@@ -147,6 +147,10 @@
  #define LSE_VALUE  ((uint32_t)32768)    /*!< Value of the External Low Speed oscillator in Hz */
 #endif /* LSE_VALUE */
 
+#if !defined  (LSE_STARTUP_TIMEOUT)
+  #define LSE_STARTUP_TIMEOUT    ((uint32_t)5000)   /*!< Time out for LSE start up, in ms */
+#endif /* LSE_STARTUP_TIMEOUT */
+
 /* Tip: To avoid modifying this file each time you need to use different HSE,
    ===  you can define the HSE value in your toolchain compiler preprocessor. */
 
@@ -159,7 +163,7 @@
 									      /*  Warning: Must be set to higher priority for HAL_Delay()  */
 									      /*  and HAL_GetTick() usage under interrupt context          */
 #define  USE_RTOS                     0
-#define  PREFETCH_ENABLE              0
+#define  PREFETCH_ENABLE              1
 #define  INSTRUCTION_CACHE_ENABLE     0
 #define  DATA_CACHE_ENABLE            0
 /* ########################## Assert Selection ############################## */

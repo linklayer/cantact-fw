@@ -2,13 +2,13 @@
   ******************************************************************************
   * @file    usbd_ioreq.h
   * @author  MCD Application Team
-  * @version V2.2.0
-  * @date    13-June-2014
-  * @brief   header file for the usbd_ioreq.c file
+  * @version V2.4.2
+  * @date    11-December-2015
+  * @brief   Header file for the usbd_ioreq.c file
   ******************************************************************************
   * @attention
   *
-  * <h2><center>&copy; COPYRIGHT 2014 STMicroelectronics</center></h2>
+  * <h2><center>&copy; COPYRIGHT 2015 STMicroelectronics</center></h2>
   *
   * Licensed under MCD-ST Liberty SW License Agreement V2, (the "License");
   * You may not use this file except in compliance with the License.
@@ -26,9 +26,12 @@
   */ 
 
 /* Define to prevent recursive inclusion -------------------------------------*/
+#ifndef __USBD_IOREQ_H
+#define __USBD_IOREQ_H
 
-#ifndef __USBD_IOREQ_H_
-#define __USBD_IOREQ_H_
+#ifdef __cplusplus
+ extern "C" {
+#endif
 
 /* Includes ------------------------------------------------------------------*/
 #include  "usbd_def.h"
@@ -109,7 +112,11 @@ uint16_t  USBD_GetRxCount (USBD_HandleTypeDef  *pdev ,
   * @}
   */ 
 
-#endif /* __USBD_IOREQ_H_ */
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* __USBD_IOREQ_H */
 
 /**
   * @}

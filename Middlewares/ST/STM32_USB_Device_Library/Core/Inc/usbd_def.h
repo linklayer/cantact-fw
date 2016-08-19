@@ -2,13 +2,13 @@
   ******************************************************************************
   * @file    usbd_def.h
   * @author  MCD Application Team
-  * @version V2.2.0
-  * @date    13-June-2014
-  * @brief   general defines for the usb device library 
+  * @version V2.4.2
+  * @date    11-December-2015
+  * @brief   General defines for the usb device library 
   ******************************************************************************
   * @attention
   *
-  * <h2><center>&copy; COPYRIGHT 2014 STMicroelectronics</center></h2>
+  * <h2><center>&copy; COPYRIGHT 2015 STMicroelectronics</center></h2>
   *
   * Licensed under MCD-ST Liberty SW License Agreement V2, (the "License");
   * You may not use this file except in compliance with the License.
@@ -26,9 +26,12 @@
   */ 
 
 /* Define to prevent recursive inclusion -------------------------------------*/
-
 #ifndef __USBD_DEF_H
 #define __USBD_DEF_H
+
+#ifdef __cplusplus
+ extern "C" {
+#endif
 
 /* Includes ------------------------------------------------------------------*/
 #include "usbd_conf.h"
@@ -47,7 +50,7 @@
   */ 
 
 #ifndef NULL
-#define NULL ((void *)0)
+#define NULL  0
 #endif
 
 
@@ -96,7 +99,7 @@
 #define  USB_DESC_TYPE_ENDPOINT                            5
 #define  USB_DESC_TYPE_DEVICE_QUALIFIER                    6
 #define  USB_DESC_TYPE_OTHER_SPEED_CONFIGURATION           7
-
+#define  USB_DESC_TYPE_BOS                                 0x0F
 
 #define USB_CONFIG_REMOTE_WAKEUP                           2
 #define USB_CONFIG_SELF_POWERED                            1
@@ -105,6 +108,7 @@
 #define USB_FEATURE_REMOTE_WAKEUP                          1
 #define USB_FEATURE_TEST_MODE                              2
 
+#define USB_DEVICE_CAPABITY_TYPE                           0x10
 
 #define USB_HS_MAX_PACKET_SIZE                            512
 #define USB_FS_MAX_PACKET_SIZE                            64
@@ -202,7 +206,10 @@ typedef struct
   uint8_t  *(*GetProductStrDescriptor)( USBD_SpeedTypeDef speed , uint16_t *length);  
   uint8_t  *(*GetSerialStrDescriptor)( USBD_SpeedTypeDef speed , uint16_t *length);  
   uint8_t  *(*GetConfigurationStrDescriptor)( USBD_SpeedTypeDef speed , uint16_t *length);  
-  uint8_t  *(*GetInterfaceStrDescriptor)( USBD_SpeedTypeDef speed , uint16_t *length);   
+  uint8_t  *(*GetInterfaceStrDescriptor)( USBD_SpeedTypeDef speed , uint16_t *length); 
+#if (USBD_LPM_ENABLED == 1)
+  uint8_t  *(*GetBOSDescriptor)( USBD_SpeedTypeDef speed , uint16_t *length); 
+#endif  
 } USBD_DescriptorsTypeDef;
 
 /* USB Device handle structure */
@@ -306,6 +313,10 @@ typedef struct _USBD_HandleTypeDef
 /**
   * @}
   */ 
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __USBD_DEF_H */
 

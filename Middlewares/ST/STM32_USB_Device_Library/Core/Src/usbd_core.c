@@ -2,13 +2,13 @@
   ******************************************************************************
   * @file    usbd_core.c
   * @author  MCD Application Team
-  * @version V2.2.0
-  * @date    13-June-2014
+  * @version V2.4.2
+  * @date    11-December-2015
   * @brief   This file provides all the USBD core functions.
   ******************************************************************************
   * @attention
   *
-  * <h2><center>&copy; COPYRIGHT 2014 STMicroelectronics</center></h2>
+  * <h2><center>&copy; COPYRIGHT 2015 STMicroelectronics</center></h2>
   *
   * Licensed under MCD-ST Liberty SW License Agreement V2, (the "License");
   * You may not use this file except in compliance with the License.
@@ -87,7 +87,7 @@
 
 /**
 * @brief  USBD_Init
-*         Initailizes the device stack and load the class driver
+*         Initializes the device stack and load the class driver
 * @param  pdev: device instance
 * @param  pdesc: Descriptor structure address
 * @param  id: Low level core index
@@ -159,7 +159,7 @@ USBD_StatusTypeDef  USBD_RegisterClass(USBD_HandleTypeDef *pdev, USBD_ClassTypeD
   USBD_StatusTypeDef   status = USBD_OK;
   if(pclass != 0)
   {
-    /* link the class tgo the USB Device handle */
+    /* link the class to the USB Device handle */
     pdev->pClass = pclass;
     status = USBD_OK;
   }
@@ -248,7 +248,7 @@ USBD_StatusTypeDef USBD_SetClassConfig(USBD_HandleTypeDef  *pdev, uint8_t cfgidx
 */
 USBD_StatusTypeDef USBD_ClrClassConfig(USBD_HandleTypeDef  *pdev, uint8_t cfgidx)
 {
-  /* Clear configuration  and Deinitialize the Class process*/
+  /* Clear configuration  and De-initialize the Class process*/
   pdev->pClass->DeInit(pdev, cfgidx);  
   return USBD_OK;
 }
@@ -357,6 +357,12 @@ USBD_StatusTypeDef USBD_LL_DataInStage(USBD_HandleTypeDef *pdev ,uint8_t epnum, 
         USBD_CtlContinueSendData (pdev, 
                                   pdata, 
                                   pep->rem_length);
+        
+        /* Prepare endpoint for premature end of transfer */
+        USBD_LL_PrepareReceive (pdev,
+                                0,
+                                NULL,
+                                0);  
       }
       else
       { /* last packet is MPS multiple, so send ZLP packet */
@@ -367,6 +373,12 @@ USBD_StatusTypeDef USBD_LL_DataInStage(USBD_HandleTypeDef *pdev ,uint8_t epnum, 
           
           USBD_CtlContinueSendData(pdev , NULL, 0);
           pdev->ep0_data_len = 0;
+          
+        /* Prepare endpoint for premature end of transfer */
+        USBD_LL_PrepareReceive (pdev,
+                                0,
+                                NULL,
+                                0);
         }
         else
         {
@@ -417,7 +429,7 @@ USBD_StatusTypeDef USBD_LL_Reset(USBD_HandleTypeDef  *pdev)
               USB_MAX_EP0_SIZE);
   
   pdev->ep_in[0].maxpacket = USB_MAX_EP0_SIZE;
-  /* Upon Reset call usr call back */
+  /* Upon Reset call user call back */
   pdev->dev_state = USBD_STATE_DEFAULT;
   
   if (pdev->pClassData) 

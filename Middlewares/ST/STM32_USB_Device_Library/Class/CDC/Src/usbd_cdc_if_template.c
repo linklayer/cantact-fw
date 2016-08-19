@@ -2,13 +2,13 @@
   ******************************************************************************
   * @file    usbd_cdc_if_template.c
   * @author  MCD Application Team
-  * @version V2.2.0
-  * @date    13-June-2014
+  * @version V2.4.2
+  * @date    11-December-2015
   * @brief   Generic media access Layer.
   ******************************************************************************
   * @attention
   *
-  * <h2><center>&copy; COPYRIGHT 2014 STMicroelectronics</center></h2>
+  * <h2><center>&copy; COPYRIGHT 2015 STMicroelectronics</center></h2>
   *
   * Licensed under MCD-ST Liberty SW License Agreement V2, (the "License");
   * You may not use this file except in compliance with the License.
@@ -94,7 +94,7 @@ USBD_CDC_LineCodingTypeDef linecoding =
   * @brief  TEMPLATE_Init
   *         Initializes the CDC media low layer
   * @param  None
-  * @retval Result of the opeartion: USBD_OK if all operations are OK else USBD_FAIL
+  * @retval Result of the operation: USBD_OK if all operations are OK else USBD_FAIL
   */
 static int8_t TEMPLATE_Init(void)
 {
@@ -108,7 +108,7 @@ static int8_t TEMPLATE_Init(void)
   * @brief  TEMPLATE_DeInit
   *         DeInitializes the CDC media low layer
   * @param  None
-  * @retval Result of the opeartion: USBD_OK if all operations are OK else USBD_FAIL
+  * @retval Result of the operation: USBD_OK if all operations are OK else USBD_FAIL
   */
 static int8_t TEMPLATE_DeInit(void)
 {
@@ -125,7 +125,7 @@ static int8_t TEMPLATE_DeInit(void)
   * @param  Cmd: Command code            
   * @param  Buf: Buffer containing command data (request parameters)
   * @param  Len: Number of data to be sent (in bytes)
-  * @retval Result of the opeartion: USBD_OK if all operations are OK else USBD_FAIL
+  * @retval Result of the operation: USBD_OK if all operations are OK else USBD_FAIL
   */
 static int8_t TEMPLATE_Control  (uint8_t cmd, uint8_t* pbuf, uint16_t length)
 { 
@@ -189,19 +189,20 @@ static int8_t TEMPLATE_Control  (uint8_t cmd, uint8_t* pbuf, uint16_t length)
 }
 
 /**
-  * @brief  TEMPLATE_DataRx
+  * @brief  TEMPLATE_Receive
   *         Data received over USB OUT endpoint are sent over CDC interface 
   *         through this function.
   *           
   *         @note
-  *         This function will block any OUT packet reception on USB endpoint 
-  *         untill exiting this function. If you exit this function before transfer
-  *         is complete on CDC interface (ie. using DMA controller) it will result 
-  *         in receiving more data while previous ones are still not sent.
+  *         This function will issue a NAK packet on any OUT packet received on 
+  *         USB endpoint untill exiting this function. If you exit this function
+  *         before transfer is complete on CDC interface (ie. using DMA controller)
+  *         it will result in receiving more data while previous ones are still 
+  *         not sent.
   *                 
   * @param  Buf: Buffer of data to be received
   * @param  Len: Number of data received (in bytes)
-  * @retval Result of the opeartion: USBD_OK if all operations are OK else USBD_FAIL
+  * @retval Result of the operation: USBD_OK if all operations are OK else USBD_FAIL
   */
 static int8_t TEMPLATE_Receive (uint8_t* Buf, uint32_t *Len)
 {

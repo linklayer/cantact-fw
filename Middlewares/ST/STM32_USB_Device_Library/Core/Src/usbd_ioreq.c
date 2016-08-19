@@ -2,13 +2,13 @@
   ******************************************************************************
   * @file    usbd_ioreq.c
   * @author  MCD Application Team
-  * @version V2.2.0
-  * @date    13-June-2014
+  * @version V2.4.2
+  * @date    11-December-2015
   * @brief   This file provides the IO requests APIs for control endpoints.
   ******************************************************************************
   * @attention
   *
-  * <h2><center>&copy; COPYRIGHT 2014 STMicroelectronics</center></h2>
+  * <h2><center>&copy; COPYRIGHT 2015 STMicroelectronics</center></h2>
   *
   * Licensed under MCD-ST Liberty SW License Agreement V2, (the "License");
   * You may not use this file except in compliance with the License.
