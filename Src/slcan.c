@@ -2,6 +2,9 @@
 #include "can.h"
 #include "slcan.h"
 
+static uint32_t current_filter_id = 0;
+static uint32_t current_filter_mask = 0;
+
 int8_t slcan_parse_frame(uint8_t *buf, CanRxMsgTypeDef *frame) {
     uint8_t i = 0;
     uint8_t id_len, j;
@@ -136,6 +139,26 @@ int8_t slcan_parse_str(uint8_t *buf, uint8_t len) {
             can_set_silent(0);
         }
         return 0;
+
+    } else if (buf[0] == 'F') {
+	// set filter command
+	uint32_t id = 0;
+	for (i = 1; i < len; i++) {
+	    id *= 16;
+	    id += buf[i];
+	}
+	current_filter_id = id;
+	can_set_filter(current_filter_id, current_filter_mask);
+
+    } else if (buf[0] == 'K') {
+	// set mask command
+	uint32_t mask = 0;
+	for (i = 1; i < len; i++) {
+	    mask *= 16;
+	    mask += buf[i];
+	}
+	current_filter_mask = mask;
+	can_set_filter(current_filter_id, current_filter_mask);
 
     } else if (buf[0] == 't' || buf[0] == 'T') {
         // transmit data frame command

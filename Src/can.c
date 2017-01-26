@@ -8,10 +8,28 @@ uint32_t prescaler;
 enum can_bus_state bus_state;
 
 void can_init(void) {
-    filter.FilterIdHigh = 0;
-    filter.FilterIdLow = 0;
-    filter.FilterMaskIdHigh = 0;
-    filter.FilterMaskIdLow = 0;
+    // default to 125 kbit/s
+    prescaler = 48;
+    hcan.Instance = CAN;
+    bus_state = OFF_BUS;
+}
+
+void can_set_filter(uint32_t id, uint32_t mask) {
+    // see page 825 of RM0091 for details on filters
+    // set the standard ID part
+    filter.FilterIdHigh = (id & 0x7FF) << 5;
+    // add the top 5 bits of the extended ID
+    filter.FilterIdHigh += (id >> 24) & 0xFFFF;
+    // set the low part to the remaining extended ID bits
+    filter.FilterIdLow += ((id & 0x1FFFF800) << 3);
+
+    // set the standard ID part
+    filter.FilterMaskIdHigh = (mask & 0x7FF) << 5;
+    // add the top 5 bits of the extended ID
+    filter.FilterMaskIdHigh += (mask >> 24) & 0xFFFF;
+    // set the low part to the remaining extended ID bits
+    filter.FilterMaskIdLow += ((mask & 0x1FFFF800) << 3);
+
     filter.FilterMode = CAN_FILTERMODE_IDMASK;
     filter.FilterScale = CAN_FILTERSCALE_32BIT;
     filter.FilterNumber = 0;
@@ -19,10 +37,9 @@ void can_init(void) {
     filter.BankNumber = 0;
     filter.FilterActivation = ENABLE;
 
-    // default to 125 kbit/s
-    prescaler = 48;
-    hcan.Instance = CAN;
-    bus_state = OFF_BUS;
+    if (bus_state == ON_BUS) {
+	HAL_CAN_ConfigFilter(&hcan, &filter);
+    }
 }
 
 void can_enable(void) {
@@ -40,8 +57,8 @@ void can_enable(void) {
 	hcan.Init.TXFP = DISABLE;
         hcan.pTxMsg = NULL;
         HAL_CAN_Init(&hcan);
-        HAL_CAN_ConfigFilter(&hcan, &filter);
         bus_state = ON_BUS;
+	can_set_filter(0, 0);
     }
 }
 

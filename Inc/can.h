@@ -26,5 +26,6 @@ void can_set_silent(uint8_t silent);
 uint32_t can_tx(CanTxMsgTypeDef *tx_msg, uint32_t timeout);
 uint32_t can_rx(CanRxMsgTypeDef *rx_msg, uint32_t timeout);
 uint8_t is_can_msg_pending(uint8_t fifo);
+void can_set_filter(uint32_t id, uint32_t mask);
 
 #endif // _CAN_H
