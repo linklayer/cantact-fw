@@ -876,7 +876,7 @@ uint8_t  USBD_CDC_ReceivePacket(USBD_HandleTypeDef *pdev)
     if(pdev->dev_speed == USBD_SPEED_HIGH  )
     {
       /* Prepare Out endpoint to receive next packet */
-      USBD_LL_PrepareReceive(pdev,
+       return USBD_LL_PrepareReceive(pdev,
 			     CDC_OUT_EP,
 			     hcdc->RxBuffer,
 			     CDC_DATA_HS_OUT_PACKET_SIZE);
@@ -884,12 +884,11 @@ uint8_t  USBD_CDC_ReceivePacket(USBD_HandleTypeDef *pdev)
     else
     {
       /* Prepare Out endpoint to receive next packet */
-      USBD_LL_PrepareReceive(pdev,
+      return USBD_LL_PrepareReceive(pdev,
 			     CDC_OUT_EP,
 			     hcdc->RxBuffer,
 			     CDC_DATA_FS_OUT_PACKET_SIZE);
     }
-    return USBD_OK;
   }
   else
   {

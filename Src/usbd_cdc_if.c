@@ -73,6 +73,9 @@
  * @{
  */
 /* USER CODE BEGIN 2 */
+extern uint8_t circle_buffer[SLCAN_MTU];
+extern uint8_t rx_point;
+extern uint8_t need_update;
 /* USER CODE END 2 */
 /**
  * @}
@@ -244,29 +247,19 @@ static int8_t CDC_Control_FS  (uint8_t cmd, uint8_t* pbuf, uint16_t length)
  * @retval Result of the opeartion: USBD_OK if all operations are OK else USBD_FAIL
  */
 
-uint8_t slcan_str[SLCAN_MTU];
-uint8_t slcan_str_index = 0;
-
 static int8_t CDC_Receive_FS (uint8_t* Buf, uint32_t *Len)
 {
     /* USER CODE BEGIN 7 */
     uint8_t n = *Len;
     uint8_t i;
     for (i = 0; i < n; i++) {
-	if (Buf[i] == '\r') {
-	    slcan_parse_str(slcan_str, slcan_str_index);
-	    slcan_str_index = 0;
-	} else {
-	    slcan_str[slcan_str_index++] = Buf[i];
-	}
+      circle_buffer[rx_point] = Buf[i];
+      rx_point = (rx_point + 1) % SLCAN_MTU;
     }
-
-    // prepare for next read
-    //USBD_CDC_SetRxBuffer(hUsbDevice_0, UserRxBufferFS);
-    USBD_CDC_ReceivePacket(hUsbDevice_0);
-
-    return (USBD_OK);
+    USBD_CDC_SetRxBuffer(&hUsbDeviceFS, &Buf[0]);
+    if (USBD_CDC_ReceivePacket(&hUsbDeviceFS) != USBD_OK) need_update = 1;
     /* USER CODE END 7 */
+    return (USBD_OK);
 }
 
 /**

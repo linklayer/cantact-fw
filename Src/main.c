@@ -63,16 +63,19 @@ static void led_init(void);
 /* USER CODE END PFP */
 
 /* USER CODE BEGIN 0 */
-
+uint8_t circle_buffer[SLCAN_MTU];
+uint8_t rx_point = 0;
+uint8_t tx_point = 0;
+uint8_t need_update;
 /* USER CODE END 0 */
 
-
-volatile int i=0;
 int main(void)
 {
 
     /* USER CODE BEGIN 1 */
-
+    CanRxMsgTypeDef rx_msg;
+    uint8_t msg_buf[SLCAN_MTU];
+    int8_t status;
     /* USER CODE END 1 */
 
     /* MCU Configuration----------------------------------------------------------*/
@@ -99,30 +102,38 @@ int main(void)
 
     // blink red LED for test
     HAL_GPIO_WritePin(GPIOB, GPIO_PIN_1, GPIO_PIN_SET);
-	HAL_Delay(100);
+    HAL_Delay(100);
     HAL_GPIO_WritePin(GPIOB, GPIO_PIN_1, GPIO_PIN_RESET);
-	HAL_Delay(100);
+    HAL_Delay(100);
     HAL_GPIO_WritePin(GPIOB, GPIO_PIN_1, GPIO_PIN_SET);
-	HAL_Delay(100);
+    HAL_Delay(100);
     HAL_GPIO_WritePin(GPIOB, GPIO_PIN_1, GPIO_PIN_RESET);
 
+    
     // loop forever
-    CanRxMsgTypeDef rx_msg;
-    uint32_t status;
-    uint8_t msg_buf[SLCAN_MTU];
-
-
     for (;;) {
-		while (!is_can_msg_pending(CAN_FIFO0))
-			led_process();
-		status = can_rx(&rx_msg, 3);
-		if (status == HAL_OK) {
-			status = slcan_parse_frame((uint8_t *)&msg_buf, &rx_msg);
-			CDC_Transmit_FS(msg_buf, status);
-		}
-		led_process();
+      //Read circle buffer for commands and messages
+      while (!is_can_msg_pending(CAN_FIFO0)){
+        if (tx_point != rx_point) {
+          slcan_parse_str(circle_buffer[tx_point]);
+          tx_point = (tx_point + 1) % SLCAN_MTU;
+        }
+        led_process();
+      }
+      //Get CAN-messages and parse them to USB buffer
+      if (can_rx(&rx_msg, 0) == HAL_OK){
+        status = slcan_parse_frame((uint8_t *)&msg_buf, &rx_msg);
+        CDC_Transmit_FS(msg_buf, status);
+      }
+      led_process();
+      
+      //If fault has occured, try to fix this on the fly
+      if (need_update){
+        need_update = 0;
+        if (USBD_CDC_ReceivePacket(&hUsbDeviceFS) != USBD_OK) need_update = 1;
+      }
     }
-
+    
     /* USER CODE END 3 */
 }
 
