@@ -4,6 +4,8 @@
 
 This repository contains sources for CANtact firmware.
 
+Documentation can be found on the [Linklayer Wiki](https://wiki.linklayer.com/index.php/CANtact).
+
 ## Building
 
 Firmware builds with GCC. Specifically, you will need gcc-arm-none-eabi, which
