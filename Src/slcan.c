@@ -2,17 +2,24 @@
 #include "can.h"
 #include "slcan.h"
 
-static uint32_t current_filter_id = 0;
-static uint32_t current_filter_mask = 0;
+
+slcan_usb2can_fsm usb2canfsm;
+CanTxMsgTypeDef frame;
+uint8_t counter;
+uint8_t bitrate = 9;
+uint8_t mode = 0;
+uint32_t current_filter_id = 0;
+uint32_t current_filter_temp = 0;
+uint32_t current_mask_id = 0;
+uint32_t current_mask_temp = 0;
 
 int8_t slcan_parse_frame(uint8_t *buf, CanRxMsgTypeDef *frame) {
     uint8_t i = 0;
     uint8_t id_len, j;
     uint32_t tmp;
-
-    for (j=0; j < SLCAN_MTU; j++) {
-        buf[j] = '\0';
-    }
+  
+  //warning: buf has to be smaller or equal to SLCAN_MTU. Potential bug
+    memset(buf, '\0', SLCAN_MTU);
 
     // add character for frame type
     if (frame->RTR == CAN_RTR_DATA) {
@@ -66,155 +73,225 @@ int8_t slcan_parse_frame(uint8_t *buf, CanRxMsgTypeDef *frame) {
     return i;
 }
 
-int8_t slcan_parse_str(uint8_t *buf, uint8_t len) {
-    CanTxMsgTypeDef frame;
-    uint8_t i;
-
-    // convert from ASCII (2nd character to end)
-    for (i = 1; i < len; i++) {
-        // lowercase letters
-        if(buf[i] >= 'a')
-            buf[i] = buf[i] - 'a' + 10;
-        // uppercase letters
-        else if(buf[i] >= 'A')
-            buf[i] = buf[i] - 'A' + 10;
-        // numbers
-        else
-            buf[i] = buf[i] - '0';
-    }
-
-    if (buf[0] == 'O') {
-        // open channel command
-        can_enable();
-        return 0;
-
-    } else if (buf[0] == 'C') {
-        // close channel command
-        can_disable();
-        return 0;
-
-    } else if (buf[0] == 'S') {
-        // set bitrate command
-        switch(buf[1]) {
-        case 0:
-            can_set_bitrate(CAN_BITRATE_10K);
-            break;
-        case 1:
-            can_set_bitrate(CAN_BITRATE_20K);
-            break;
-        case 2:
-            can_set_bitrate(CAN_BITRATE_50K);
-            break;
-        case 3:
-            can_set_bitrate(CAN_BITRATE_100K);
-            break;
-        case 4:
-            can_set_bitrate(CAN_BITRATE_125K);
-            break;
-        case 5:
-            can_set_bitrate(CAN_BITRATE_250K);
-            break;
-        case 6:
-            can_set_bitrate(CAN_BITRATE_500K);
-            break;
-        case 7:
-            can_set_bitrate(CAN_BITRATE_750K);
-            break;
-        case 8:
-            can_set_bitrate(CAN_BITRATE_1000K);
-            break;
-        default:
-            // invalid setting
-            return -1;
-        }
-        return 0;
-
-    } else if (buf[0] == 'm' || buf[0] == 'M') {
-        // set mode command
-        if (buf[1] == 1) {
-            // mode 1: silent
-            can_set_silent(1);
-        } else {
-            // default to normal mode
-            can_set_silent(0);
-        }
-        return 0;
-
-    } else if (buf[0] == 'F') {
-	// set filter command
-	uint32_t id = 0;
-	for (i = 1; i < len; i++) {
-	    id *= 16;
-	    id += buf[i];
-	}
-	current_filter_id = id;
-	can_set_filter(current_filter_id, current_filter_mask);
-
-    } else if (buf[0] == 'K') {
-	// set mask command
-	uint32_t mask = 0;
-	for (i = 1; i < len; i++) {
-	    mask *= 16;
-	    mask += buf[i];
-	}
-	current_filter_mask = mask;
-	can_set_filter(current_filter_id, current_filter_mask);
-
-    } else if (buf[0] == 't' || buf[0] == 'T') {
-        // transmit data frame command
+slcan_usb2can_fsm parse_command_type(uint8_t command_type){
+      switch (command_type){
+      case 'O':
+        return GET_OPEN_COMMAND;
+      case 'C':
+        return GET_CLOSE_COMMAND;
+      case 'S':
+        return GET_BITRATE_COMMAND;
+      case 'm':
+      case 'M':
+        return GET_MODE_COMMAND;
+      case 'F':
+        return GET_FILTER_COMMAND;
+      case 'K':
+        return GET_MASK_COMMAND;
+      case 't':
         frame.RTR = CAN_RTR_DATA;
-
-    } else if (buf[0] == 'r' || buf[0] == 'R') {
-        // transmit remote frame command
-        frame.RTR = CAN_RTR_REMOTE;
-
-    } else {
-        // error, unknown command
-        return -1;
-    }
-
-    if (buf[0] == 't' || buf[0] == 'r') {
         frame.IDE = CAN_ID_STD;
-    } else if (buf[0] == 'T' || buf[0] == 'R') {
+        return GET_FRAME_STD_ID;
+      case 'r':
+        frame.RTR = CAN_RTR_REMOTE;
+        frame.IDE = CAN_ID_STD;
+        return GET_FRAME_STD_ID;
+      case 'T':
+        frame.RTR = CAN_RTR_DATA;
         frame.IDE = CAN_ID_EXT;
-    } else {
-        // error
-        return -1;
+        return GET_FRAME_EXT_ID;
+      case 'R':
+        frame.RTR = CAN_RTR_REMOTE;
+        frame.IDE = CAN_ID_EXT;
+        return GET_FRAME_EXT_ID;
+      default:
+        return GET_MSG_TYPE;
     }
+}
 
-    frame.StdId = 0;
-    frame.ExtId = 0;
-    if (frame.IDE == CAN_ID_EXT) {
-        uint8_t id_len = SLCAN_EXT_ID_LEN;
-        i = 1;
-        while (i <= id_len) {
-            frame.ExtId *= 16;
-            frame.ExtId += buf[i++];
+uint8_t ASCII2byte(char ASCII_symbol){
+      // convert from ASCII (2nd character to end)
+   
+    // lowercase letters
+    if (ASCII_symbol >= 'a')
+       return (ASCII_symbol - 'a' + 10);
+    // uppercase letters
+    else if(ASCII_symbol >= 'A')
+       return (ASCII_symbol - 'A' + 10);
+    // numbers
+    else if ((ASCII_symbol <= '9') && (ASCII_symbol >= '0'))
+      return ASCII_symbol - '0';
+    else
+      return 0xFF;
+}
+
+uint8_t switch_bitrate_command(uint8_t bitrate){
+  switch(bitrate) {
+    case 0:
+       can_set_bitrate(CAN_BITRATE_10K);
+       break;
+    case 1:
+       can_set_bitrate(CAN_BITRATE_20K);
+       break;
+    case 2:
+       can_set_bitrate(CAN_BITRATE_50K);
+       break;
+    case 3:
+       can_set_bitrate(CAN_BITRATE_100K);
+       break;
+    case 4:
+       can_set_bitrate(CAN_BITRATE_125K);
+       break;
+    case 5:
+       can_set_bitrate(CAN_BITRATE_250K);
+       break;
+    case 6:
+       can_set_bitrate(CAN_BITRATE_500K);
+       break;
+    case 7:
+       can_set_bitrate(CAN_BITRATE_750K);
+       break;
+    case 8:
+       can_set_bitrate(CAN_BITRATE_1000K);
+       break;
+    default:
+       // invalid setting
+       return 0xFF;
+  }
+  return 0;
+}
+
+int8_t slcan_parse_str(uint8_t newbyte) {
+    static volatile char byte; 
+    byte = (char)newbyte;
+    
+    if ((usb2canfsm != GET_MSG_TYPE) && (newbyte != '\r'))
+      newbyte = ASCII2byte(newbyte);
+    
+    switch (usb2canfsm){
+      case GET_MSG_TYPE:
+        //check which message type came
+        usb2canfsm = parse_command_type(newbyte);
+        
+        break;
+      case GET_OPEN_COMMAND:
+        //if next byte is '\r', open channel and reset fsm
+        if (newbyte == '\r'){
+          can_enable();
         }
-    }
-    else {
-        uint8_t id_len = SLCAN_STD_ID_LEN;
-        i = 1;
-        while (i <= id_len) {
-            frame.StdId *= 16;
-            frame.StdId += buf[i++];
+        usb2canfsm = GET_MSG_TYPE;
+        return 0;
+      case GET_CLOSE_COMMAND:
+        //if next byte is '\r', open channel and reset fsm
+        if (newbyte == '\r'){
+          can_disable();
         }
+        usb2canfsm = GET_MSG_TYPE;
+        return 0;
+      case GET_BITRATE_COMMAND:
+        if (counter >= 1){
+          if (newbyte == '\r')
+            switch_bitrate_command(bitrate);
+          counter = 0;
+          usb2canfsm = GET_MSG_TYPE;
+          return 0;
+        } else{
+          counter++;
+          bitrate = newbyte;
+        }
+        break;
+      case GET_MODE_COMMAND:
+        if (counter >= 1){
+          if (newbyte == '\r')
+            can_set_silent(mode);
+          counter = 0;
+          usb2canfsm = GET_MSG_TYPE;
+          return 0;
+        } else{
+          counter++;
+          mode = newbyte;
+        }
+        break;
+      case GET_FILTER_COMMAND:
+        if (counter >= 5){
+          if (newbyte == '\r'){
+            current_filter_id = current_filter_temp;
+            can_set_filter(current_filter_id, current_mask_id);
+          }
+          current_filter_temp = 0;
+          counter = 0;
+          usb2canfsm = GET_MSG_TYPE;
+          return 0;
+        } else{
+          counter++;
+          current_filter_temp = (current_filter_temp << 4) | newbyte;
+        }
+        break;
+      case GET_MASK_COMMAND:
+        if (counter >= 5){
+          if (newbyte == '\r'){
+            current_mask_id = current_mask_temp;
+            can_set_filter(current_filter_id, current_mask_id);
+          }
+          current_mask_temp = 0;
+          counter = 0;
+          usb2canfsm = GET_MSG_TYPE;
+          return 0;
+        } else{
+          counter++;
+          current_mask_temp = (current_mask_temp << 4) | newbyte;
+        }
+        break;
+      case GET_FRAME_STD_ID:
+        if (counter >= 3){
+          if ((newbyte <= 8) && (newbyte > 0)) {
+            frame.DLC = newbyte;
+            usb2canfsm = GET_FRAME_DATA;
+          } else 
+            usb2canfsm = GET_MSG_TYPE;
+          counter = 0;
+        } else{
+          counter++;
+          frame.StdId = (frame.StdId << 4) | newbyte;
+        }
+        break;
+      case GET_FRAME_EXT_ID:
+        if (counter >= 9){
+          if (newbyte <= 8) {
+            frame.DLC = newbyte;
+            usb2canfsm = GET_FRAME_DATA;
+          } else 
+            usb2canfsm = GET_MSG_TYPE;
+          counter = 0;
+        } else{
+          counter++;
+          frame.ExtId = (frame.ExtId << 4) | newbyte;
+        }
+        break;
+      case GET_FRAME_DATA:
+        if (counter >= (frame.DLC*2)){
+          if (newbyte == '\r'){
+            can_tx(&frame, 0);
+          }
+          memset(&frame, 0x00, sizeof(frame));
+          counter = 0;
+          usb2canfsm = GET_MSG_TYPE;
+          return 0;
+        } else{
+          frame.Data[counter/2] = (frame.Data[counter/2] << 4) | newbyte;
+          counter++;
+        }
+        break;
+      default:
+        usb2canfsm = GET_MSG_TYPE;
+        break;
+    }
+    
+    if (byte == '\r'){
+      usb2canfsm = GET_MSG_TYPE;
+      counter = 0;
+      return 0;
     }
 
-
-    frame.DLC = buf[i++];
-    if (frame.DLC < 0 || frame.DLC > 8) {
-        return -1;
-    }
-
-    uint8_t j;
-    for (j = 0; j < frame.DLC; j++) {
-        frame.Data[j] = (buf[i] << 4) + buf[i+1];
-        i += 2;
-    }
-
-    // send the message
-    can_tx(&frame, 10);
-
-    return 0;
+    return 1;
 }
