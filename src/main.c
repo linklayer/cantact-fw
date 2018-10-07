@@ -21,23 +21,36 @@ int main(void)
     led_init();
     usb_init();
 
-    led_green_on();
-    led_blue_blink(3);
+    led_blue_blink(2);
 
-    uint32_t last_blinkgreen = 0;
+    // loop forever
+    CanRxMsgTypeDef rx_msg;
+    uint32_t status;
+
+    uint8_t msg_buf[SLCAN_MTU];
+    uint16_t msg_len = 0;
+
 
     while(1)
     {
+        while (!is_can_msg_pending(CAN_FIFO0))
+            led_process();
 
-        if(HAL_GetTick() - last_blinkgreen > 1000)
-        { 
-            HAL_GPIO_TogglePin(LED_GREEN);
-            last_blinkgreen = HAL_GetTick();
+        status = can_rx(&rx_msg, 3);
+
+        if (status == HAL_OK) {
+                msg_len = slcan_parse_frame((uint8_t *)&msg_buf, &rx_msg);
+
+                if(msg_len)
+                {
+                    CDC_Transmit_FS(msg_buf, msg_len);
+                }
         }
 
-		led_process();
-        can_process();
-        usb_process();
+
+        led_process();
+        //can_process();
+        //usb_process();
     }
 }
 

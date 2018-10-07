@@ -52,18 +52,16 @@ void system_init(void)
 
     // set USB clock source to PLL (48 MHz)
     PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_USB;
-    PeriphClkInit.UsbClockSelection = RCC_USBCLKSOURCE_PLLCLK;
+    PeriphClkInit.UsbClockSelection = RCC_USBCLKSOURCE_PLL;
 
 #endif
 
     HAL_RCC_OscConfig(&RCC_OscInitStruct);
     HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_0);
     HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit);
-    __SYSCFG_CLK_ENABLE();
 
-
-	HAL_SYSTICK_Config(HAL_RCC_GetHCLKFreq()/1000);
-	HAL_SYSTICK_CLKSourceConfig(SYSTICK_CLKSOURCE_HCLK);
+    HAL_SYSTICK_Config(HAL_RCC_GetHCLKFreq()/1000);
+    HAL_SYSTICK_CLKSourceConfig(SYSTICK_CLKSOURCE_HCLK);
     HAL_NVIC_SetPriority(SysTick_IRQn, 0, 0);
 
 
@@ -72,7 +70,7 @@ void system_init(void)
     RCC_CRSInitTypeDef RCC_CRSInitStruct;
 
     // Enable CRS Clock
-    __CRS_CLK_ENABLE();
+    __HAL_RCC_CRS_CLK_ENABLE();
 
     // Default Synchro Signal division factor (not divided) 
     RCC_CRSInitStruct.Prescaler = RCC_CRS_SYNC_DIV1;
@@ -81,7 +79,7 @@ void system_init(void)
     RCC_CRSInitStruct.Source = RCC_CRS_SYNC_SOURCE_USB;
 
     // HSI48 is synchronized with USB SOF at 1KHz rate 
-    RCC_CRSInitStruct.ReloadValue = __HAL_RCC_CRS_CALCULATE_RELOADVALUE(48000000, 1000);
+    RCC_CRSInitStruct.ReloadValue = __HAL_RCC_CRS_RELOADVALUE_CALCULATE(48000000, 1000);
     RCC_CRSInitStruct.ErrorLimitValue = RCC_CRS_ERRORLIMIT_DEFAULT;
 
     // Set the TRIM[5:0] to the default value
@@ -98,8 +96,23 @@ void system_init(void)
 #endif
 
     HAL_NVIC_SetPriority(SysTick_IRQn, 0, 0);
-    __GPIOF_CLK_ENABLE();
-    __GPIOA_CLK_ENABLE();
-    __GPIOB_CLK_ENABLE();
+    __HAL_RCC_GPIOF_CLK_ENABLE();
+    __HAL_RCC_GPIOA_CLK_ENABLE();
+    __HAL_RCC_GPIOB_CLK_ENABLE();
 }
 
+
+void system_hex32(char *out, uint32_t val)
+{
+	char *p = out + 8;
+	*p-- = 0;
+	while (p >= out) {
+		uint8_t nybble = val & 0x0F;
+		if (nybble < 10)
+			*p = '0' + nybble;
+		else
+			*p = 'A' + nybble - 10;
+		val >>= 4;
+		p--;
+	}
+} 

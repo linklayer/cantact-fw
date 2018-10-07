@@ -26,15 +26,15 @@ void can_init(void)
 {
     // Initialize GPIO for CAN transceiver 
     GPIO_InitTypeDef GPIO_InitStruct;
-    __CAN_CLK_ENABLE();
-    __GPIOB_CLK_ENABLE();
+    __HAL_RCC_CAN1_CLK_ENABLE();
+    __HAL_RCC_GPIOB_CLK_ENABLE();
 
     //PB8     ------> CAN_RX
     //PB9     ------> CAN_TX
     GPIO_InitStruct.Pin = GPIO_PIN_8|GPIO_PIN_9;
     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
-    GPIO_InitStruct.Speed = GPIO_SPEED_LOW;
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
     GPIO_InitStruct.Alternate = GPIO_AF4_CAN;
     HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
@@ -64,8 +64,8 @@ void can_enable(void)
     if (bus_state == OFF_BUS)
     {
 
-    	HAL_NVIC_SetPriority(CEC_CAN_IRQn, 0, 0);
-    	HAL_NVIC_EnableIRQ(CEC_CAN_IRQn);
+    	//HAL_NVIC_SetPriority(CEC_CAN_IRQn, 0, 0);
+    	//HAL_NVIC_EnableIRQ(CEC_CAN_IRQn);
 
     	can_handle.Init.Prescaler = prescaler;
     	can_handle.Init.Mode = CAN_MODE_NORMAL;
@@ -78,15 +78,15 @@ void can_enable(void)
     	can_handle.Init.NART = DISABLE;
     	can_handle.Init.RFLM = DISABLE;
     	can_handle.Init.TXFP = DISABLE;
-    	can_handle.pTxMsg = &can_tx_msg;
-    	can_handle.pRxMsg = &can_rx_msg;
+    	can_handle.pTxMsg =  NULL; //&can_tx_msg;
+    	//can_handle.pRxMsg = &can_rx_msg;
         HAL_CAN_Init(&can_handle);
         HAL_CAN_ConfigFilter(&can_handle, &filter);
         bus_state = ON_BUS;
 
         led_blue_on();
 
-    	HAL_CAN_Receive_IT(&can_handle, CAN_FIFO0);
+//    	HAL_CAN_Receive_IT(&can_handle, CAN_FIFO0);
 
     }
 }
@@ -101,8 +101,8 @@ void can_disable(void)
     	can_handle.Instance->MCR |= CAN_MCR_RESET;
         bus_state = OFF_BUS;
 
-    	HAL_NVIC_DisableIRQ(CEC_CAN_IRQn);
-    	HAL_CAN_DeInit(&can_handle);
+//    	HAL_NVIC_DisableIRQ(CEC_CAN_IRQn);
+//    	HAL_CAN_DeInit(&can_handle);
     }
 }
 
@@ -173,91 +173,25 @@ uint32_t can_tx(CanTxMsgTypeDef *tx_msg)
 
     // transmit can frame
     can_handle.pTxMsg = tx_msg;
-    status = HAL_CAN_Transmit_IT(&can_handle);
-
-	//led_blue_on();
+//    status = HAL_CAN_Transmit_IT(&can_handle);
+    status = HAL_CAN_Transmit(&can_handle, 10);
+//	led_blue_on();
+    led_green_on();
     return status;
 }
 
-
-CanTxMsgTypeDef localmsg;
-static volatile uint8_t can_rearm_rx = 0;
-
-
-void can_process(void)
+uint32_t can_rx(CanRxMsgTypeDef *rx_msg, uint32_t timeout) 
 {
-    if(process_recv)
-    {
-        CanRxMsgTypeDef* rxmsg = can_handle.pRxMsg;
-        uint8_t msg_buf[SLCAN_MTU];
-        uint32_t numbytes = slcan_parse_frame(msg_buf, rxmsg);
-        CDC_Transmit_FS(msg_buf, numbytes);
+    uint32_t status;
 
-        process_recv = 0;
-    }
+    can_handle.pRxMsg = rx_msg;
 
-    if(process_tx)
-    {
-        uint32_t res = can_tx(&localmsg);
+    status = HAL_CAN_Receive(&can_handle, CAN_FIFO0, timeout);
 
-        // If result okay, we're done. Otherwise retry on the next time around.
-        if(res == HAL_OK)
-        {
-            process_tx = 0;
-        }
-
-    }
-
-
-    // If we were trying to transmit while starting the next rx cycle, defer to here
-    if(can_rearm_rx > 0)
-    {
-        uint32_t res = HAL_CAN_Receive_IT(&can_handle, CAN_FIFO0);
-        process_tx = 0;
-        if(res != HAL_OK)
-        {
-            led_green_off();
-            can_rearm_rx = 1;
-        }
-        else
-        {
-            led_green_on();
-            can_rearm_rx = 0;
-        }
-
-    }
-
-}
-
-void can_preptx(CanTxMsgTypeDef *msg)
-{
-    localmsg = *msg;
-    process_tx = 1;
-}
-
-// CAN rxcomplete callback TODO: Move to interrupts?
-void HAL_CAN_RxCpltCallback(CAN_HandleTypeDef* hcan)
-{
 	led_blue_on();
-    process_recv = 1;
-	uint32_t res = HAL_CAN_Receive_IT(hcan, CAN_FIFO0);
-
-    if(res != HAL_OK)
-    {
-        can_rearm_rx = 1;
-    }
-}
-/*
-void HAL_CAN_TxCpltCallback(CAN_HandleTypeDef *hcan)
-{
-
+    return status;
 }
 
-void HAL_CAN_ErrorCallback(CAN_HandleTypeDef *hcan)
-{
-    //error_assert(ERR_CANBUS);
-}
-*/
 
 // Check if a CAN message has been received and is waiting in the FIFO
 uint8_t is_can_msg_pending(uint8_t fifo)

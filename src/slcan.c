@@ -208,7 +208,8 @@ int8_t slcan_parse_str(uint8_t *buf, uint8_t len)
     }
 
     // send the message
-    can_preptx(&frame);
+//    can_preptx(&frame);
+    can_tx(&frame);
 
     return 0;
 }

@@ -12,7 +12,7 @@
 
 
 
-#define LED_DURATION 50
+#define LED_DURATION 25 
 
 void led_init();
 void led_blue_blink(uint8_t numblinks);

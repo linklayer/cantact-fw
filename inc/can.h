@@ -24,6 +24,7 @@ void can_disable(void);
 void can_set_bitrate(enum can_bitrate bitrate);
 void can_set_silent(uint8_t silent);
 uint32_t can_tx(CanTxMsgTypeDef *tx_msg);
+uint32_t can_rx(CanRxMsgTypeDef *rx_msg, uint32_t timeout);
 
 void can_process(void);
 void can_preptx(CanTxMsgTypeDef *tx_msg);
