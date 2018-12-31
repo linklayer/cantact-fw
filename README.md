@@ -1,6 +1,6 @@
-# CANable/CANtact Firmware
+# CANable Firmware
 
-This repository contains sources for the slcan CANtact firmware modified for the CANable USB to CAN adapter.
+This repository contains sources for the slcan CANable firmware, based off of the CANtact firwmare. This firmware should still compile and run on the CANtact.
 
 ## Supported Commands
 
@@ -35,12 +35,19 @@ is packaged for Windows, OS X, and Linux on
 [Launchpad](https://launchpad.net/gcc-arm-embedded/+download). Download for your
 system and add the `bin` folder to your PATH.
 
-With that done, you should be able to compile using `make`. If you are compiling for a device that has no external crystal, compile with `make INTERNAL_OSCILLATOR=1`.
+Your Linux distribution may also have a prebuilt package for `arm-none-eabi-gcc`, check your distro's repositories to see if a build exists.
 
-## Flashing & Debugging
+- If you have a CANable device, compile with `make INTERNAL_OSCILLATOR=1`.
+- If you have a CANtact device, you can compile using `make`. 
+
+## Flashing with the Bootloader
+
+Simply plug in your CANable with the BOOT jumper enabled (or depress the boot button on the CANable Pro while plugging in). Next, type `make flash` and your CANable will be updated to the latest firwmare. Unplug/replug the device after moving the boot jumper back, and your CANable will be up and running.
+
+## Debugging
 
 Debugging and flashing can be done with any STM32 Discovery board as a
-programmer. You can also use other tools that support SWD.
+programmer, or an st-link. You can also use other tools that support SWD.
 
 To use an STM32 Discovery, run [OpenOCD](http://openocd.sourceforge.net/) using
 the stm32f0x.cfg file: `openocd -f fw/stm32f0x.cfg`.
@@ -49,7 +56,7 @@ With OpenOCD running, arm-none-eabi-gdb can be used to load code and debug.
 
 ## Contributors
 
-- [Ethan Zonca](https://github.com/normaldotcom) - Makefile fixes and code size optimization
+- [Ethan Zonca](https://github.com/normaldotcom) - Makefile fixes and code size optimization, updates for CANable
 - [onejope](https://github.com/onejope) - Fixes to extended ID handling
 - Phil Wise - Added dfu-util compatibility to Makefile
 
