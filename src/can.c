@@ -166,6 +166,23 @@ void can_set_silent(uint8_t silent)
 }
 
 
+// Set CAN peripheral to silent mode
+void can_set_autoretransmit(uint8_t autoretransmit)
+{
+    if (bus_state == ON_BUS)
+    {
+        // cannot set silent mode while on bus
+        return;
+    }
+    if (autoretransmit)
+    {
+    	can_handle.Init.NART = DISABLE;
+    } else {
+    	can_handle.Init.NART = ENABLE;
+    }
+}
+
+
 // Send a message on the CAN bus (blocking)
 uint32_t can_tx(CanTxMsgTypeDef *tx_msg)
 {

@@ -154,6 +154,18 @@ int8_t slcan_parse_str(uint8_t *buf, uint8_t len)
         }
         return 0;
 
+    } else if (buf[0] == 'a' || buf[0] == 'A') {
+        // set autoretry command
+        if (buf[1] == 1) 
+        {
+            // mode 1: autoretry enabled (default)
+            can_set_autoretransmit(1);
+        } else {
+            // mode 0: autoretry disabled
+            can_set_autoretransmit(0);
+        }
+        return 0;
+
     } else if (buf[0] == 't' || buf[0] == 'T') {
         // transmit data frame command
         frame.RTR = CAN_RTR_DATA;
