@@ -312,11 +312,11 @@ static int8_t CDC_Receive_FS (uint8_t* Buf, uint32_t *Len)
            int result = slcan_parse_str(slcan_str, slcan_str_index);
 
            // Success
-           if(result == 0)
-               CDC_Transmit_FS("\n", 1); 
+           //if(result == 0)
+           //    CDC_Transmit_FS("\n", 1); 
            // Failure
-           else
-               CDC_Transmit_FS("\a", 1);
+           //else
+           //    CDC_Transmit_FS("\a", 1);
 
            slcan_str_index = 0;
        } else {
