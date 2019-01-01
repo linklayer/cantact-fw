@@ -102,6 +102,7 @@ void system_init(void)
 }
 
 
+// Convert a 32-bit value to an ascii hex value
 void system_hex32(char *out, uint32_t val)
 {
 	char *p = out + 8;

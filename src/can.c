@@ -17,6 +17,8 @@ enum can_bus_state bus_state;
 static volatile uint8_t process_recv = 0;
 static volatile uint8_t process_tx = 0;
 
+static uint8_t can_nart = DISABLE;
+
 static CanRxMsgTypeDef can_rx_msg;
 static CanTxMsgTypeDef can_tx_msg;
 
@@ -75,7 +77,7 @@ void can_enable(void)
     	can_handle.Init.TTCM = DISABLE;
     	can_handle.Init.ABOM = ENABLE;
     	can_handle.Init.AWUM = DISABLE;
-    	can_handle.Init.NART = DISABLE;
+    	can_handle.Init.NART = can_nart;
     	can_handle.Init.RFLM = DISABLE;
     	can_handle.Init.TXFP = DISABLE;
     	can_handle.pTxMsg =  NULL; //&can_tx_msg;
@@ -103,6 +105,8 @@ void can_disable(void)
 
 //    	HAL_NVIC_DisableIRQ(CEC_CAN_IRQn);
 //    	HAL_CAN_DeInit(&can_handle);
+
+        led_green_on();
     }
 }
 
@@ -146,6 +150,8 @@ void can_set_bitrate(enum can_bitrate bitrate)
             prescaler = 6;
             break;
     }
+
+    led_green_on();
 }
 
 
@@ -163,6 +169,8 @@ void can_set_silent(uint8_t silent)
     } else {
     	can_handle.Init.Mode = CAN_MODE_NORMAL;
     }
+
+    led_green_on();
 }
 
 
@@ -176,10 +184,12 @@ void can_set_autoretransmit(uint8_t autoretransmit)
     }
     if (autoretransmit)
     {
-    	can_handle.Init.NART = DISABLE;
+        can_nart = DISABLE;
     } else {
-    	can_handle.Init.NART = ENABLE;
+        can_nart = ENABLE;
     }
+
+    led_green_on();
 }
 
 
