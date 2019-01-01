@@ -9,18 +9,12 @@
 #include "led.h"
 
 
+// Private variables
 static CAN_HandleTypeDef can_handle;
 static CAN_FilterConfTypeDef filter;
 static uint32_t prescaler;
 enum can_bus_state bus_state;
-
-static volatile uint8_t process_recv = 0;
-static volatile uint8_t process_tx = 0;
-
 static uint8_t can_nart = DISABLE;
-
-static CanRxMsgTypeDef can_rx_msg;
-static CanTxMsgTypeDef can_tx_msg;
 
 
 // Initialize CAN peripheral settings, but don't actually start the peripheral
@@ -65,10 +59,6 @@ void can_enable(void)
 {
     if (bus_state == OFF_BUS)
     {
-
-    	//HAL_NVIC_SetPriority(CEC_CAN_IRQn, 0, 0);
-    	//HAL_NVIC_EnableIRQ(CEC_CAN_IRQn);
-
     	can_handle.Init.Prescaler = prescaler;
     	can_handle.Init.Mode = CAN_MODE_NORMAL;
     	can_handle.Init.SJW = CAN_SJW_1TQ;
@@ -80,16 +70,12 @@ void can_enable(void)
     	can_handle.Init.NART = can_nart;
     	can_handle.Init.RFLM = DISABLE;
     	can_handle.Init.TXFP = DISABLE;
-    	can_handle.pTxMsg =  NULL; //&can_tx_msg;
-    	//can_handle.pRxMsg = &can_rx_msg;
+    	can_handle.pTxMsg =  NULL;
         HAL_CAN_Init(&can_handle);
         HAL_CAN_ConfigFilter(&can_handle, &filter);
         bus_state = ON_BUS;
 
         led_blue_on();
-
-//    	HAL_CAN_Receive_IT(&can_handle, CAN_FIFO0);
-
     }
 }
 
@@ -99,12 +85,9 @@ void can_disable(void)
 {
     if (bus_state == ON_BUS)
     {
-        // do a bxCAN reset (set RESET bit to 1)
+        // Do a bxCAN reset (set RESET bit to 1)
     	can_handle.Instance->MCR |= CAN_MCR_RESET;
         bus_state = OFF_BUS;
-
-//    	HAL_NVIC_DisableIRQ(CEC_CAN_IRQn);
-//    	HAL_CAN_DeInit(&can_handle);
 
         led_green_on();
     }
@@ -179,7 +162,7 @@ void can_set_autoretransmit(uint8_t autoretransmit)
 {
     if (bus_state == ON_BUS)
     {
-        // cannot set silent mode while on bus
+        // Cannot set autoretransmission while on bus
         return;
     }
     if (autoretransmit)
@@ -198,15 +181,16 @@ uint32_t can_tx(CanTxMsgTypeDef *tx_msg)
 {
     uint32_t status;
 
-    // transmit can frame
+    // Transmit can frame
     can_handle.pTxMsg = tx_msg;
-//    status = HAL_CAN_Transmit_IT(&can_handle);
     status = HAL_CAN_Transmit(&can_handle, 10);
-//	led_blue_on();
     led_green_on();
+
     return status;
 }
 
+
+// Receive message from the CAN bus (blocking)
 uint32_t can_rx(CanRxMsgTypeDef *rx_msg, uint32_t timeout) 
 {
     uint32_t status;

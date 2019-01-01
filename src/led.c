@@ -5,6 +5,8 @@
 #include "stm32f0xx_hal.h"
 #include "led.h"
 
+
+// Private variables
 static volatile uint32_t led_blue_laston = 0;
 static volatile uint32_t led_green_laston = 0;
 static uint32_t led_blue_lastoff = 0;
@@ -61,6 +63,7 @@ void led_blue_blink(uint8_t numblinks)
 	}
 }
 
+
 // Attempt to turn on status LED
 void led_blue_on(void)
 {
@@ -84,6 +87,7 @@ void led_process(void)
 		led_blue_laston = 0;
 		led_blue_lastoff = HAL_GetTick();
 	}
+
 	// If LED has been on for long enough, turn it off
 	if(led_green_laston > 0 && HAL_GetTick() - led_green_laston > LED_DURATION)
 	{

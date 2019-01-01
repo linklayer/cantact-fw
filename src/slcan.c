@@ -1,10 +1,13 @@
 //
 // slcan: Parse incoming and generate outgoing slcan messages
+//
 
 #include "stm32f0xx_hal.h"
 #include "can.h"
 #include "slcan.h"
 
+
+// Parse an incoming CAN frame into an outgoing slcan message
 int8_t slcan_parse_frame(uint8_t *buf, CanRxMsgTypeDef *frame)
 {
     uint8_t i = 0;
@@ -16,7 +19,7 @@ int8_t slcan_parse_frame(uint8_t *buf, CanRxMsgTypeDef *frame)
         buf[j] = '\0';
     }
 
-    // add character for frame type
+    // Add character for frame type
     if (frame->RTR == CAN_RTR_DATA)
     {
         buf[i] = 't';
@@ -24,40 +27,40 @@ int8_t slcan_parse_frame(uint8_t *buf, CanRxMsgTypeDef *frame)
         buf[i] = 'r';
     }
 
-    // assume standard identifier
+    // Assume standard identifier
     id_len = SLCAN_STD_ID_LEN;
     tmp = frame->StdId;
 
-    // check if extended
+    // Check if extended
     if (frame->IDE == CAN_ID_EXT)
     {
-        // convert first char to upper case for extended frame
+        // Convert first char to upper case for extended frame
         buf[i] -= 32;
         id_len = SLCAN_EXT_ID_LEN;
         tmp = frame->ExtId;
     }
     i++;
 
-    // add identifier to buffer
+    // Add identifier to buffer
     for(j=id_len; j > 0; j--)
     {
-        // add nybble to buffer
+        // Add nybble to buffer
         buf[j] = (tmp & 0xF);
         tmp = tmp >> 4;
         i++;
     }
 
-    // add DLC to buffer
+    // Add DLC to buffer
     buf[i++] = frame->DLC;
 
-    // add data bytes
+    // Add data bytes
     for (j = 0; j < frame->DLC; j++)
     {
         buf[i++] = (frame->Data[j] >> 4);
         buf[i++] = (frame->Data[j] & 0x0F);
     }
 
-    // convert to ASCII (2nd character to end)
+    // Convert to ASCII (2nd character to end)
     for (j = 1; j < i; j++)
     {
         if (buf[j] < 0xA) {
@@ -67,46 +70,47 @@ int8_t slcan_parse_frame(uint8_t *buf, CanRxMsgTypeDef *frame)
         }
     }
 
-    // add carrage return (slcan EOL)
+    // Add carrage return (slcan EOL)
     buf[i++] = '\r';
 
-    // return number of bytes in string
+    // Return number of bytes in string
     return i;
 }
 
 
+// Parse an incoming slcan command from the USB CDC port
 int8_t slcan_parse_str(uint8_t *buf, uint8_t len)
 {
     CanTxMsgTypeDef frame;
     uint8_t i;
 
-    // convert from ASCII (2nd character to end)
+    // Convert from ASCII (2nd character to end)
     for (i = 1; i < len; i++)
     {
-        // lowercase letters
+        // Lowercase letters
         if(buf[i] >= 'a')
             buf[i] = buf[i] - 'a' + 10;
-        // uppercase letters
+        // Uppercase letters
         else if(buf[i] >= 'A')
             buf[i] = buf[i] - 'A' + 10;
-        // numbers
+        // Numbers
         else
             buf[i] = buf[i] - '0';
     }
 
     if (buf[0] == 'O')
     {
-        // open channel command
+        // Open channel command
         can_enable();
         return 0;
 
     } else if (buf[0] == 'C') {
-        // close channel command
+        // Close channel command
         can_disable();
         return 0;
 
     } else if (buf[0] == 'S') {
-        // set bitrate command
+        // Set bitrate command
         switch(buf[1])
         {
             case 0:
@@ -143,42 +147,43 @@ int8_t slcan_parse_str(uint8_t *buf, uint8_t len)
         return 0;
 
     } else if (buf[0] == 'm' || buf[0] == 'M') {
-        // set mode command
+        // Set mode command
         if (buf[1] == 1) 
         {
-            // mode 1: silent
+            // Mode 1: silent
             can_set_silent(1);
         } else {
-            // default to normal mode
+            // Default to normal mode
             can_set_silent(0);
         }
         return 0;
 
     } else if (buf[0] == 'a' || buf[0] == 'A') {
-        // set autoretry command
+        // Set autoretry command
         if (buf[1] == 1) 
         {
-            // mode 1: autoretry enabled (default)
+            // Mode 1: autoretry enabled (default)
             can_set_autoretransmit(1);
         } else {
-            // mode 0: autoretry disabled
+            // Mode 0: autoretry disabled
             can_set_autoretransmit(0);
         }
         return 0;
 
     } else if (buf[0] == 't' || buf[0] == 'T') {
-        // transmit data frame command
+        // Transmit data frame command
         frame.RTR = CAN_RTR_DATA;
 
     } else if (buf[0] == 'r' || buf[0] == 'R') {
-        // transmit remote frame command
+        // Transmit remote frame command
         frame.RTR = CAN_RTR_REMOTE;
 
     } else {
-        // error, unknown command
+        // Error, unknown command
         return -1;
     }
 
+    // Check for extended or standard frame (set by case)
     if (buf[0] == 't' || buf[0] == 'r') {
         frame.IDE = CAN_ID_STD;
     } else if (buf[0] == 'T' || buf[0] == 'R') {
@@ -208,6 +213,7 @@ int8_t slcan_parse_str(uint8_t *buf, uint8_t len)
     }
 
 
+    // Attempt to parse DLC and check sanity
     frame.DLC = buf[i++];
     if (frame.DLC < 0 || frame.DLC > 8) {
         return -1;
@@ -219,9 +225,9 @@ int8_t slcan_parse_str(uint8_t *buf, uint8_t len)
         i += 2;
     }
 
-    // send the message
-//    can_preptx(&frame);
+    // Transmit the message
     can_tx(&frame);
 
     return 0;
 }
+
