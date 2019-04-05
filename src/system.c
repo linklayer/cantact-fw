@@ -66,33 +66,30 @@ void system_init(void)
 
 
 #ifdef INTERNAL_OSCILLATOR
+
     // Enable clock recovery system for internal oscillator
     RCC_CRSInitTypeDef RCC_CRSInitStruct;
-
-    // Enable CRS Clock
     __HAL_RCC_CRS_CLK_ENABLE();
-
+	
     // Default Synchro Signal division factor (not divided) 
     RCC_CRSInitStruct.Prescaler = RCC_CRS_SYNC_DIV1;
 
     // Set the SYNCSRC[1:0] bits according to CRS_Source value 
     RCC_CRSInitStruct.Source = RCC_CRS_SYNC_SOURCE_USB;
 
+    // Rising polarity
+    RCC_CRSInitStruct.Polarity = RCC_CRS_SYNC_POLARITY_RISING;
+
     // HSI48 is synchronized with USB SOF at 1KHz rate 
     RCC_CRSInitStruct.ReloadValue = __HAL_RCC_CRS_RELOADVALUE_CALCULATE(48000000, 1000);
     RCC_CRSInitStruct.ErrorLimitValue = RCC_CRS_ERRORLIMIT_DEFAULT;
 
     // Set the TRIM[5:0] to the default value
-    RCC_CRSInitStruct.HSI48CalibrationValue = 0x20; 
+    RCC_CRSInitStruct.HSI48CalibrationValue = 32;
 
     // Start automatic synchronization 
     HAL_RCCEx_CRSConfig(&RCC_CRSInitStruct);
-
-    // Force sync event
-    HAL_RCCEx_CRSSoftwareSynchronizationGenerate();
-
-    // Wait until synchronized
-    HAL_RCCEx_CRSWaitSynchronization(3000);
+	
 #endif
 
     HAL_NVIC_SetPriority(SysTick_IRQn, 0, 0);
