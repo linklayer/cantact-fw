@@ -23,6 +23,7 @@ This repository contains sources for the slcan CANable firmware, based off of th
 - `tIIILDD...` - Transmit data frame (Standard ID) [ID, length, data]
 - `RIIIIIIIIL` - Transmit remote frame (Extended ID) [ID, length]
 - `rIIIL` - Transmit remote frame (Standard ID) [ID, length]
+- `V` - Returns firmware version and remote path as a string
 
 Note: Channel configuration commands must be sent before opening the channel. The channel must be opened before transmitting frames.
 
