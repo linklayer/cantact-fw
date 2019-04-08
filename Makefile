@@ -85,13 +85,20 @@ INCLUDES += $(USER_INCLUDES)
 # macros for gcc
 DEFS = -D$(CORE) $(USER_DEFS) -D$(TARGET_DEVICE)
 
+# Get git version and dirty flag
+GIT_VERSION := $(shell git describe --abbrev=4 --dirty --always --tags)
+GIT_REMOTE := $(shell git config --get remote.origin.url)
+
 # compile gcc flags
 CFLAGS = $(DEFS) $(INCLUDES)
 CFLAGS += -mcpu=$(CPU) -mthumb
 CFLAGS += $(USER_CFLAGS)
+CFLAGS += -DGIT_VERSION=\"$(GIT_VERSION)\"
+CFLAGS += -DGIT_REMOTE=\"$(GIT_REMOTE)\"
 
 # default action: build the user application
 all: $(BUILD_DIR)/$(TARGET).bin $(BUILD_DIR)/$(TARGET).hex
+
 
 flash: all
 	sudo dfu-util -d 0483:df11 -c 1 -i 0 -a 0 -s 0x08000000 -D $(BUILD_DIR)/$(TARGET).bin

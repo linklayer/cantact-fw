@@ -5,6 +5,8 @@
 #include "stm32f0xx_hal.h"
 #include "can.h"
 #include "slcan.h"
+#include "string.h"
+#include "usbd_cdc_if.h"
 
 
 // Parse an incoming CAN frame into an outgoing slcan message
@@ -168,6 +170,12 @@ int8_t slcan_parse_str(uint8_t *buf, uint8_t len)
             // Mode 0: autoretry disabled
             can_set_autoretransmit(0);
         }
+        return 0;
+
+    } else if (buf[0] == 'v' || buf[0] == 'V') {
+        // Report firmware version and remote
+        char* fw_id = GIT_VERSION " " GIT_REMOTE "\r";
+        CDC_Transmit_FS((uint8_t*)fw_id, strlen(fw_id));
         return 0;
 
     } else if (buf[0] == 't' || buf[0] == 'T') {

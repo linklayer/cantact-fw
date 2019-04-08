@@ -91,20 +91,11 @@
   * @brief Private defines.
   * @{
   */
-#define STRINGIZE_(x) #x
-#define STRINGIZE(x) STRINGIZE_(x)
-
-#if CANTACT_BUILD_NUMBER == 0
-    #define CANTACT_SW_VER		"dev"
-#else
-    #define CANTACT_SW_VER		"b" STRINGIZE(CANTACT_BUILD_NUMBER)
-#endif
-
 #define USBD_VID			0xad50
 #define USBD_LANGID_STRING		1033
 #define USBD_MANUFACTURER_STRING	"CANtact"
 #define USBD_PID_FS			0x60c4
-#define USBD_PRODUCT_STRING_FS		"CANtact" " " CANTACT_SW_VER
+#define USBD_PRODUCT_STRING_FS		"CANtact" " " GIT_VERSION " " GIT_REMOTE
 #define USBD_CONFIGURATION_STRING_FS    "CDC Config"
 #define USBD_INTERFACE_STRING_FS	"CDC Interface"
 
