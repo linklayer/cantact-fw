@@ -86,7 +86,7 @@ INCLUDES += $(USER_INCLUDES)
 DEFS = -D$(CORE) $(USER_DEFS) -D$(TARGET_DEVICE)
 
 # Get git version and dirty flag
-GIT_VERSION := $(shell git describe --abbrev=4 --dirty --always --tags)
+GIT_VERSION := $(shell git describe --abbrev=7 --dirty --always --tags)
 GIT_REMOTE := $(shell git config --get remote.origin.url)
 
 # compile gcc flags
