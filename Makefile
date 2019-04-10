@@ -8,13 +8,16 @@
 # user configuration:
 #######################################
 
-BUILD_NUMBER ?= 0
 
 # SOURCES: list of sources in the user application
 SOURCES = main.c system.c usbd_conf.c usbd_cdc_if.c usb_device.c usbd_desc.c interrupts.c system_stm32f0xx.c can.c slcan.c led.c
 
+# Get git version and dirty flag
+GIT_VERSION := $(shell git describe --abbrev=7 --dirty --always --tags)
+GIT_REMOTE := $(shell git config --get remote.origin.url)
+
 # TARGET: name of the user application
-TARGET = CANtact-b$(BUILD_NUMBER)
+TARGET = canable-$(GIT_VERSION)
 
 # BUILD_DIR: directory to place output files in
 BUILD_DIR = build
@@ -24,7 +27,7 @@ LD_SCRIPT = STM32F042C6_FLASH.ld
 
 # USER_DEFS user defined macros
 USER_DEFS = -D HSI48_VALUE=48000000 -D HSE_VALUE=16000000
-USER_DEFS += -D CANTACT_BUILD_NUMBER=$(BUILD_NUMBER)
+
 # USER_INCLUDES: user defined includes
 USER_INCLUDES =
 
@@ -84,10 +87,6 @@ INCLUDES += $(USER_INCLUDES)
 
 # macros for gcc
 DEFS = -D$(CORE) $(USER_DEFS) -D$(TARGET_DEVICE)
-
-# Get git version and dirty flag
-GIT_VERSION := $(shell git describe --abbrev=7 --dirty --always --tags)
-GIT_REMOTE := $(shell git config --get remote.origin.url)
 
 # compile gcc flags
 CFLAGS = $(DEFS) $(INCLUDES)
