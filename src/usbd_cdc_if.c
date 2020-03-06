@@ -94,7 +94,7 @@
 /* USER CODE BEGIN PRIVATE_DEFINES */
 /* Define size for the receive and transmit buffer over CDC */
 /* It's up to user to redefine and/or remove those define */
-#define APP_RX_DATA_SIZE  32
+#define APP_RX_DATA_SIZE  512
 #define APP_TX_DATA_SIZE  32 /* USER CODE END PRIVATE_DEFINES */
 
 /**
@@ -303,13 +303,11 @@ uint8_t slcan_str_index = 0;
 
 static int8_t CDC_Receive_FS (uint8_t* Buf, uint32_t *Len)
 {
-    uint8_t n = *Len;
-    uint8_t i;
-
-    for (i = 0; i < n; i++)
+    for (uint32_t i = 0; i < *Len; i++)
     {
-       if (Buf[i] == '\r') {
-           int result = slcan_parse_str(slcan_str, slcan_str_index);
+       if (Buf[i] == '\r')
+       {
+           int8_t result = slcan_parse_str(slcan_str, slcan_str_index);
 
            // Success
            //if(result == 0)
@@ -319,7 +317,9 @@ static int8_t CDC_Receive_FS (uint8_t* Buf, uint32_t *Len)
            //    CDC_Transmit_FS("\a", 1);
 
            slcan_str_index = 0;
-       } else {
+       }
+       else
+       {
            slcan_str[slcan_str_index++] = Buf[i];
        }
     }
@@ -352,18 +352,19 @@ uint8_t CDC_Transmit_FS(uint8_t* Buf, uint16_t Len)
 //      return USBD_BUSY;
 //    }
     
-    uint16_t i;
-
-    for (i=0; i < sizeof(UserTxBufferFS); i++)
+    // Zero out buffer
+    for (uint32_t i=0; i < sizeof(UserTxBufferFS); i++)
     {
     	UserTxBufferFS[i] = 0;
     }
 
-    for (i=0; i < Len; i++)
+    // Copy data into buffer
+    for (uint32_t i=0; i < Len; i++)
     {
     	UserTxBufferFS[i] = Buf[i];
     }
 
+    // Set transmit buffer and start TX
     USBD_CDC_SetTxBuffer(&hUsbDeviceFS, UserTxBufferFS, Len);
     result = USBD_CDC_TransmitPacket(&hUsbDeviceFS);
 

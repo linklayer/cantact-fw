@@ -11,7 +11,7 @@
 
 // Private variables
 static CAN_HandleTypeDef can_handle;
-static CAN_FilterConfTypeDef filter;
+static CAN_FilterTypeDef filter;
 static uint32_t prescaler;
 enum can_bus_state bus_state;
 static uint8_t can_nart = DISABLE;
@@ -40,12 +40,12 @@ void can_init(void)
     filter.FilterIdLow = 0;
     filter.FilterMaskIdHigh = 0;
     filter.FilterMaskIdLow = 0;
+    filter.FilterFIFOAssignment = CAN_RX_FIFO0;
+    filter.FilterBank = 0;
     filter.FilterMode = CAN_FILTERMODE_IDMASK;
     filter.FilterScale = CAN_FILTERSCALE_32BIT;
-    filter.FilterNumber = 0;
-    filter.FilterFIFOAssignment = CAN_FIFO0;
-    filter.BankNumber = 0;
     filter.FilterActivation = ENABLE;
+
 
     // default to 125 kbit/s
     prescaler = 48;
@@ -61,18 +61,21 @@ void can_enable(void)
     {
     	can_handle.Init.Prescaler = prescaler;
     	can_handle.Init.Mode = CAN_MODE_NORMAL;
-    	can_handle.Init.SJW = CAN_SJW_1TQ;
-    	can_handle.Init.BS1 = CAN_BS1_4TQ;
-    	can_handle.Init.BS2 = CAN_BS2_3TQ;
-    	can_handle.Init.TTCM = DISABLE;
-    	can_handle.Init.ABOM = ENABLE;
-    	can_handle.Init.AWUM = DISABLE;
-    	can_handle.Init.NART = can_nart;
-    	can_handle.Init.RFLM = DISABLE;
-    	can_handle.Init.TXFP = DISABLE;
-    	can_handle.pTxMsg =  NULL;
+
+    	can_handle.Init.SyncJumpWidth = CAN_SJW_1TQ;
+    	can_handle.Init.TimeSeg1 = CAN_BS1_4TQ;
+    	can_handle.Init.TimeSeg2 = CAN_BS2_3TQ;
+    	can_handle.Init.TimeTriggeredMode = DISABLE;
+    	can_handle.Init.AutoBusOff = ENABLE;
+    	can_handle.Init.AutoWakeUp = DISABLE;
+    	can_handle.Init.AutoRetransmission = can_nart;
+    	can_handle.Init.ReceiveFifoLocked = DISABLE;
+    	can_handle.Init.TransmitFifoPriority = DISABLE;
         HAL_CAN_Init(&can_handle);
+
         HAL_CAN_ConfigFilter(&can_handle, &filter);
+
+        HAL_CAN_Start(&can_handle);
         bus_state = ON_BUS;
 
         led_blue_on();
@@ -177,13 +180,14 @@ void can_set_autoretransmit(uint8_t autoretransmit)
 
 
 // Send a message on the CAN bus (blocking)
-uint32_t can_tx(CanTxMsgTypeDef *tx_msg)
+uint32_t can_tx(CAN_TxHeaderTypeDef *tx_msg_header, uint8_t* tx_msg_data)
 {
     uint32_t status;
 
     // Transmit can frame
-    can_handle.pTxMsg = tx_msg;
-    status = HAL_CAN_Transmit(&can_handle, 10);
+    uint32_t mailbox_txed = 0;
+    status = HAL_CAN_AddTxMessage(&can_handle, tx_msg_header, tx_msg_data, &mailbox_txed);
+
     led_green_on();
 
     return status;
@@ -191,13 +195,10 @@ uint32_t can_tx(CanTxMsgTypeDef *tx_msg)
 
 
 // Receive message from the CAN bus (blocking)
-uint32_t can_rx(CanRxMsgTypeDef *rx_msg, uint32_t timeout) 
+uint32_t can_rx(CAN_RxHeaderTypeDef *rx_msg_header, uint8_t* rx_msg_data)
 {
     uint32_t status;
-
-    can_handle.pRxMsg = rx_msg;
-
-    status = HAL_CAN_Receive(&can_handle, CAN_FIFO0, timeout);
+    status = HAL_CAN_GetRxMessage(&can_handle, CAN_RX_FIFO0, rx_msg_header, rx_msg_data);
 
 	led_blue_on();
     return status;
@@ -211,7 +212,8 @@ uint8_t is_can_msg_pending(uint8_t fifo)
     {
         return 0;
     }
-    return (__HAL_CAN_MSG_PENDING(&can_handle, fifo) > 0);
+
+    return(HAL_CAN_GetRxFifoFillLevel(&can_handle, CAN_RX_FIFO0) > 0);
 }
 
 

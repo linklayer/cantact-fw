@@ -3,7 +3,9 @@
 //
 
 
+#include "stm32f0xx.h"
 #include "stm32f0xx_hal.h"
+
 #include "usb_device.h"
 #include "usbd_cdc_if.h"
 #include "can.h"
@@ -15,7 +17,6 @@
 int main(void)
 {
     // Initialize peripherals
-    HAL_Init();
     system_init();
     can_init();
     led_init();
@@ -23,25 +24,24 @@ int main(void)
 
     led_blue_blink(2);
 
-    // Storage for status and recieved message buffer
-    CanRxMsgTypeDef rx_msg;
-    uint32_t status;
+    // Storage for status and received message buffer
+    CAN_RxHeaderTypeDef rx_msg_header;
+    uint8_t rx_msg_data[8] = {0};
     uint8_t msg_buf[SLCAN_MTU];
-    uint16_t msg_len = 0;
 
 
     while(1)
     {
-        // Block until a CAN message is recieved
-        while (!is_can_msg_pending(CAN_FIFO0))
+        // Block until a CAN message is received
+        while (!is_can_msg_pending(CAN_RX_FIFO0))
             led_process();
 
-        status = can_rx(&rx_msg, 3);
+        uint32_t status = can_rx(&rx_msg_header, rx_msg_data);
 
         // If message received from bus, parse the frame
         if (status == HAL_OK)
         {
-            msg_len = slcan_parse_frame((uint8_t *)&msg_buf, &rx_msg);
+        	uint16_t msg_len = slcan_parse_frame((uint8_t *)&msg_buf, &rx_msg_header, rx_msg_data);
 
             // Transmit message via USB-CDC 
             if(msg_len)
