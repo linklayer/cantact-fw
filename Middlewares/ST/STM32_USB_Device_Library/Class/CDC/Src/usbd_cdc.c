@@ -181,8 +181,8 @@ __ALIGN_BEGIN uint8_t USBD_CDC_CfgHSDesc[USB_CDC_CONFIG_DESC_SIZ] __ALIGN_END =
   0x02,   /* bNumInterfaces: 2 interface */
   0x01,   /* bConfigurationValue: Configuration value */
   0x00,   /* iConfiguration: Index of string descriptor describing the configuration */
-  0xC0,   /* bmAttributes: self powered */
-  0x32,   /* MaxPower 0 mA */
+  0x80,   /* bmAttributes: bus powered */
+  0xFA,   /* MaxPower 500 mA */
 
   /*---------------------------------------------------------------------------*/
 
@@ -277,8 +277,8 @@ __ALIGN_BEGIN uint8_t USBD_CDC_CfgFSDesc[USB_CDC_CONFIG_DESC_SIZ] __ALIGN_END =
   0x02,   /* bNumInterfaces: 2 interface */
   0x01,   /* bConfigurationValue: Configuration value */
   0x00,   /* iConfiguration: Index of string descriptor describing the configuration */
-  0xC0,   /* bmAttributes: self powered */
-  0x32,   /* MaxPower 0 mA */
+  0x80,   /* bmAttributes: bus powered */
+  0xFA,   /* MaxPower 500 mA */
 
   /*---------------------------------------------------------------------------*/
 
@@ -370,8 +370,8 @@ __ALIGN_BEGIN uint8_t USBD_CDC_OtherSpeedCfgDesc[USB_CDC_CONFIG_DESC_SIZ] __ALIG
   0x02,   /* bNumInterfaces: 2 interfaces */
   0x01,   /* bConfigurationValue: */
   0x04,   /* iConfiguration: */
-  0xC0,   /* bmAttributes: */
-  0x32,   /* MaxPower 100 mA */
+  0x80,   /* bmAttributes: bus powered */
+  0xFA,   /* MaxPower 500 mA */
 
   /*Interface Descriptor */
   0x09,   /* bLength: Interface Descriptor size */
