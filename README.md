@@ -38,8 +38,8 @@ system and add the `bin` folder to your PATH.
 
 Your Linux distribution may also have a prebuilt package for `arm-none-eabi-gcc`, check your distro's repositories to see if a build exists.
 
-- If you have a CANable device, compile with `make INTERNAL_OSCILLATOR=1`.
-- If you have a CANtact device, you can compile using `make`. 
+- If you have a CANable device, you can compile using `make`. 
+- If you have a CANtact or other device with external oscillator, you can compile using `make INTERNAL_OSCILLATOR=1`
 
 ## Flashing with the Bootloader
 
@@ -57,7 +57,7 @@ With OpenOCD running, arm-none-eabi-gdb can be used to load code and debug.
 
 ## Contributors
 
-- [Ethan Zonca](https://github.com/normaldotcom) - Makefile fixes and code size optimization, updates for CANable
+- [Ethan Zonca](https://github.com/normaldotcom) - New features, HAL updates, Makefile fixes and code size optimization, updates for CANable
 - [onejope](https://github.com/onejope) - Fixes to extended ID handling
 - Phil Wise - Added dfu-util compatibility to Makefile
 
