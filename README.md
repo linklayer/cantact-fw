@@ -6,6 +6,23 @@ This repository contains sources for CANtact firmware.
 
 Documentation can be found on the [Linklayer Wiki](https://wiki.linklayer.com/index.php/CANtact).
 
+## STM32F072B-DISCO Notes
+
+LD4:    "RED" led (can frame rx/tx)
+LD5:    "Green" led (status)
+
+CanBUS connection:
+PB9:    `CAN_TX`
+PB8:    `CAN_RX`
+
+Firmware runs from internal HSI48 oscillator.
+The connectors are nicely aligned together in top right of the board, on P2 connector.
+GND, PB9, PB8, VCC is available in a single row.
+
+Tested with: Waveshare CAN breakout board
+
+USB connection via `USB USER` connector on the board
+
 ## Building
 
 Firmware builds with GCC. Specifically, you will need gcc-arm-none-eabi, which
