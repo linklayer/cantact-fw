@@ -68,7 +68,7 @@ void can_disable(void) {
         hcan.Instance->MCR |= CAN_MCR_RESET;
         bus_state = OFF_BUS;
     }
-    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_1, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(LED_GPIO, LED_RED, GPIO_PIN_RESET);
 }
 
 void can_set_bitrate(enum can_bitrate bitrate) {
