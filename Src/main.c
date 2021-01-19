@@ -234,7 +234,8 @@ void MX_GPIO_Init(void)
     __GPIOF_CLK_ENABLE();
     __GPIOA_CLK_ENABLE();
     __GPIOB_CLK_ENABLE();
-    LED_GPIO_CLK();
+    LED_GREEN_GPIO_CLK();
+    LED_RED_GPIO_CLK();
 }
 
 /* USER CODE BEGIN 4 */
