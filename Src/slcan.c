@@ -203,7 +203,7 @@ int8_t slcan_parse_str(uint8_t *buf, uint8_t len) {
 
 
     frame.DLC = buf[i++];
-    if (frame.DLC < 0 || frame.DLC > 8) {
+    if (frame.DLC > 8) {
         return -1;
     }
 

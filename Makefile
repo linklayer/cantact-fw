@@ -9,6 +9,24 @@
 #######################################
 
 BUILD_NUMBER ?= 0
+# build hw can be either 'cantact' or 'disco'
+BUILD_HW ?= cantact
+
+# BUILD_DIR: directory to place output files in
+BUILD_DIR = build
+
+ifeq ($(BUILD_HW),cantact)
+EXTRA_DEFS = -D LINKLAYER
+STARTUP_S = $(BUILD_DIR)/startup_stm32f042x6.o
+TARGET_DEVICE = STM32F042x6
+LD_SCRIPT = STM32F042C6_FLASH.ld
+endif
+ifeq ($(BUILD_HW),disco)
+EXTRA_DEFS =
+STARTUP_S = $(BUILD_DIR)/startup_stm32f072xb.o
+TARGET_DEVICE = STM32F072xB
+LD_SCRIPT = STM32F072RB_FLASH.ld
+endif
 
 # SOURCES: list of sources in the user application
 SOURCES = main.c usbd_conf.c usbd_cdc_if.c usb_device.c usbd_desc.c stm32f0xx_hal_msp.c stm32f0xx_it.c system_stm32f0xx.c can.c slcan.c led.c
@@ -16,14 +34,8 @@ SOURCES = main.c usbd_conf.c usbd_cdc_if.c usb_device.c usbd_desc.c stm32f0xx_ha
 # TARGET: name of the user application
 TARGET = CANtact-b$(BUILD_NUMBER)
 
-# BUILD_DIR: directory to place output files in
-BUILD_DIR = build
-
-# LD_SCRIPT: location of the linker script
-LD_SCRIPT = STM32F042C6_FLASH.ld
-
 # USER_DEFS user defined macros
-USER_DEFS = -D HSI48_VALUE=48000000 -D HSE_VALUE=16000000
+USER_DEFS = -D HSI48_VALUE=48000000 -D HSE_VALUE=16000000 $(EXTRA_DEFS)
 USER_DEFS += -D CANTACT_BUILD_NUMBER=$(BUILD_NUMBER)
 # USER_INCLUDES: user defined includes
 USER_INCLUDES =
@@ -36,9 +48,6 @@ USB_INCLUDES += -IMiddlewares/ST/STM32_USB_Device_Library/Class/CDC/Inc
 USER_CFLAGS = -Wall -g -ffunction-sections -fdata-sections -Os
 # USER_LDFLAGS:  user LD flags
 USER_LDFLAGS = -fno-exceptions -ffunction-sections -fdata-sections -Wl,--gc-sections
-
-# TARGET_DEVICE: device to compile for
-TARGET_DEVICE = STM32F042x6
 
 #######################################
 # end of user configuration
@@ -143,7 +152,7 @@ $(USB_BUILD_DIR):
 # list of user program objects
 OBJECTS = $(addprefix $(BUILD_DIR)/,$(notdir $(SOURCES:.c=.o)))
 # add an object for the startup code
-OBJECTS += $(BUILD_DIR)/startup_stm32f042x6.o
+OBJECTS += $(STARTUP_S)
 
 # use the periphlib core library, plus generic ones (libc, libm, libnosys)
 LIBS = -lstm32cube -lc -lm -lnosys
@@ -172,10 +181,10 @@ $(BUILD_DIR):
 
 # delete all user application files, keep the libraries
 clean:
-		-rm $(BUILD_DIR)/*.o
-		-rm $(BUILD_DIR)/*.elf
-		-rm $(BUILD_DIR)/*.hex
-		-rm $(BUILD_DIR)/*.map
-		-rm $(BUILD_DIR)/*.bin
+		-rm -f $(BUILD_DIR)/*.o
+		-rm -f $(BUILD_DIR)/*.elf
+		-rm -f $(BUILD_DIR)/*.hex
+		-rm -f $(BUILD_DIR)/*.map
+		-rm -f $(BUILD_DIR)/*.bin
 
 .PHONY: clean all cubelib
