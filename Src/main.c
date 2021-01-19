@@ -120,16 +120,16 @@ int main(void)
 
 
     // turn on green LED
-    HAL_GPIO_WritePin(LED_GPIO, LED_GREEN, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(LED_GREEN_GPIO, LED_GREEN, GPIO_PIN_SET);
 
     // blink red LED for test
-    HAL_GPIO_WritePin(LED_GPIO, LED_RED, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(LED_RED_GPIO, LED_RED, GPIO_PIN_SET);
 	HAL_Delay(100);
-    HAL_GPIO_WritePin(LED_GPIO, LED_RED, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(LED_RED_GPIO, LED_RED, GPIO_PIN_RESET);
 	HAL_Delay(100);
-    HAL_GPIO_WritePin(LED_GPIO, LED_RED, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(LED_RED_GPIO, LED_RED, GPIO_PIN_SET);
 	HAL_Delay(100);
-    HAL_GPIO_WritePin(LED_GPIO, LED_RED, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(LED_RED_GPIO, LED_RED, GPIO_PIN_RESET);
 
     // loop forever
     CanRxMsgTypeDef rx_msg;
@@ -241,12 +241,14 @@ void MX_GPIO_Init(void)
 static void led_init(void)
 {
     GPIO_InitTypeDef GPIO_InitStruct = { 0, };
-    GPIO_InitStruct.Pin = LED_RED | LED_GREEN;
+    GPIO_InitStruct.Pin = LED_GREEN;
     GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
     GPIO_InitStruct.Pull = GPIO_PULLUP;
     GPIO_InitStruct.Speed = GPIO_SPEED_MEDIUM;
     GPIO_InitStruct.Alternate = 0;
-    HAL_GPIO_Init(LED_GPIO, &GPIO_InitStruct);
+    HAL_GPIO_Init(LED_GREEN_GPIO, &GPIO_InitStruct);
+    GPIO_InitStruct.Pin = LED_RED;
+    HAL_GPIO_Init(LED_RED_GPIO, &GPIO_InitStruct);
 }
 /* USER CODE END 4 */
 

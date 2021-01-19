@@ -5,7 +5,8 @@
 
 #ifdef LINKLAYER
 // LINKLAYER CANTACT-HW
-#define LED_GPIO        GPIOB
+#define LED_GREEN_GPIO  GPIOB
+#define LED_RED_GPIO    GPIOB
 #define LED_GPIO_CLK    __GPIOB_CLK_ENABLE
 #define LED_GREEN       (GPIO_PIN_0)
 #define LED_RED         (GPIO_PIN_1)
@@ -14,7 +15,8 @@
 
 // STM32F072B-DISCOVERY
 
-#define LED_GPIO        GPIOC
+#define LED_GREEN_GPIO  GPIOC
+#define LED_RED_GPIO    GPIOC
 #define LED_GPIO_CLK    __GPIOC_CLK_ENABLE
 #define LED_GREEN       (GPIO_PIN_9)
 #define LED_RED         (GPIO_PIN_8)
