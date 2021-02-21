@@ -1,7 +1,6 @@
 //
-// CANable firmware - a fork of CANtact by Eric Evenchick
+// CANable firmware
 //
-
 
 #include "stm32f0xx.h"
 #include "stm32f0xx_hal.h"
@@ -12,6 +11,7 @@
 #include "slcan.h"
 #include "system.h"
 #include "led.h"
+#include "error.h"
 
 
 int main(void)
@@ -32,25 +32,25 @@ int main(void)
 
     while(1)
     {
-        // Block until a CAN message is received
-        while (!is_can_msg_pending(CAN_RX_FIFO0))
-            led_process();
-
-        uint32_t status = can_rx(&rx_msg_header, rx_msg_data);
-
-        // If message received from bus, parse the frame
-        if (status == HAL_OK)
-        {
-        	uint16_t msg_len = slcan_parse_frame((uint8_t *)&msg_buf, &rx_msg_header, rx_msg_data);
-
-            // Transmit message via USB-CDC 
-            if(msg_len)
-            {
-                CDC_Transmit_FS(msg_buf, msg_len);
-            }
-        }
-
+        cdc_process();
         led_process();
+        can_process();
+
+        // If CAN message receive is pending, process the message
+        if(is_can_msg_pending(CAN_RX_FIFO0))
+        {
+			// If message received from bus, parse the frame
+			if (can_rx(&rx_msg_header, rx_msg_data) == HAL_OK)
+			{
+				uint16_t msg_len = slcan_parse_frame((uint8_t *)&msg_buf, &rx_msg_header, rx_msg_data);
+
+				// Transmit message via USB-CDC
+				if(msg_len)
+				{
+					CDC_Transmit_FS(msg_buf, msg_len);
+				}
+			}
+        }
     }
 }
 

@@ -1,172 +1,28 @@
-/**
-  ******************************************************************************
-  * @file           : usbd_cdc_if.c
-  * @version        : v2.0_Cube
-  * @brief          : Usb device for Virtual Com Port.
-  ******************************************************************************
-  * This notice applies to any and all portions of this file
-  * that are not between comment pairs USER CODE BEGIN and
-  * USER CODE END. Other portions of this file, whether 
-  * inserted by the user or by software development tools
-  * are owned by their respective copyright owners.
-  *
-  * Copyright (c) 2018 STMicroelectronics International N.V. 
-  * All rights reserved.
-  *
-  * Redistribution and use in source and binary forms, with or without 
-  * modification, are permitted, provided that the following conditions are met:
-  *
-  * 1. Redistribution of source code must retain the above copyright notice, 
-  *    this list of conditions and the following disclaimer.
-  * 2. Redistributions in binary form must reproduce the above copyright notice,
-  *    this list of conditions and the following disclaimer in the documentation
-  *    and/or other materials provided with the distribution.
-  * 3. Neither the name of STMicroelectronics nor the names of other 
-  *    contributors to this software may be used to endorse or promote products 
-  *    derived from this software without specific written permission.
-  * 4. This software, including modifications and/or derivative works of this 
-  *    software, must execute solely and exclusively on microcontroller or
-  *    microprocessor devices manufactured by or for STMicroelectronics.
-  * 5. Redistribution and use of this software other than as permitted under 
-  *    this license is void and will automatically terminate your rights under 
-  *    this license. 
-  *
-  * THIS SOFTWARE IS PROVIDED BY STMICROELECTRONICS AND CONTRIBUTORS "AS IS" 
-  * AND ANY EXPRESS, IMPLIED OR STATUTORY WARRANTIES, INCLUDING, BUT NOT 
-  * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A 
-  * PARTICULAR PURPOSE AND NON-INFRINGEMENT OF THIRD PARTY INTELLECTUAL PROPERTY
-  * RIGHTS ARE DISCLAIMED TO THE FULLEST EXTENT PERMITTED BY LAW. IN NO EVENT 
-  * SHALL STMICROELECTRONICS OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-  * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-  * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, 
-  * OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF 
-  * LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING 
-  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
-  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-  *
-  ******************************************************************************
-  */
+//
+// usbd_cdc_if: provide USB-CDC user-level functions
+//
 
-/* Includes ------------------------------------------------------------------*/
 #include "usbd_cdc_if.h"
 #include "slcan.h"
+#include "led.h"
+#include "error.h"
 
-/* USER CODE BEGIN INCLUDE */
-
-/* USER CODE END INCLUDE */
-
-/* Private typedef -----------------------------------------------------------*/
-/* Private define ------------------------------------------------------------*/
-/* Private macro -------------------------------------------------------------*/
-
-/* USER CODE BEGIN PV */
-/* Private variables ---------------------------------------------------------*/
-
-/* USER CODE END PV */
-
-/** @addtogroup STM32_USB_OTG_DEVICE_LIBRARY
-  * @brief Usb device library.
-  * @{
-  */
-
-/** @addtogroup USBD_CDC_IF
-  * @{
-  */
-
-/** @defgroup USBD_CDC_IF_Private_TypesDefinitions USBD_CDC_IF_Private_TypesDefinitions
-  * @brief Private types.
-  * @{
-  */
-
-/* USER CODE BEGIN PRIVATE_TYPES */
-
-/* USER CODE END PRIVATE_TYPES */
-
-/**
-  * @}
-  */
-
-/** @defgroup USBD_CDC_IF_Private_Defines USBD_CDC_IF_Private_Defines
-  * @brief Private defines.
-  * @{
-  */
-
-/* USER CODE BEGIN PRIVATE_DEFINES */
-/* Define size for the receive and transmit buffer over CDC */
-/* It's up to user to redefine and/or remove those define */
-#define APP_RX_DATA_SIZE  512
-#define APP_TX_DATA_SIZE  32 /* USER CODE END PRIVATE_DEFINES */
-
-/**
-  * @}
-  */
-
-/** @defgroup USBD_CDC_IF_Private_Macros USBD_CDC_IF_Private_Macros
-  * @brief Private macros.
-  * @{
-  */
-
-/* USER CODE BEGIN PRIVATE_MACRO */
-
-/* USER CODE END PRIVATE_MACRO */
-
-/**
-  * @}
-  */
-
-/** @defgroup USBD_CDC_IF_Private_Variables USBD_CDC_IF_Private_Variables
-  * @brief Private variables.
-  * @{
-  */
-/* Create buffer for reception and transmission           */
-/* It's up to user to redefine and/or remove those define */
-/** Received data over USB are stored in this buffer      */
-uint8_t UserRxBufferFS[APP_RX_DATA_SIZE];
-
-/** Data to send over USB CDC are stored in this buffer   */
-uint8_t UserTxBufferFS[APP_TX_DATA_SIZE];
-
-/* USER CODE BEGIN PRIVATE_VARIABLES */
-
-/* USER CODE END PRIVATE_VARIABLES */
-
-/**
-  * @}
-  */
-
-/** @defgroup USBD_CDC_IF_Exported_Variables USBD_CDC_IF_Exported_Variables
-  * @brief Public variables.
-  * @{
-  */
-
+// Private variables
+static volatile usbrx_buf_t rxbuf = {0};
+static uint8_t txbuf[TX_BUF_SIZE];
 extern USBD_HandleTypeDef hUsbDeviceFS;
+static uint8_t slcan_str[SLCAN_MTU];
+static uint8_t slcan_str_index = 0;
 
-/* USER CODE BEGIN EXPORTED_VARIABLES */
 
-/* USER CODE END EXPORTED_VARIABLES */
-
-/**
-  * @}
-  */
-
-/** @defgroup USBD_CDC_IF_Private_FunctionPrototypes USBD_CDC_IF_Private_FunctionPrototypes
-  * @brief Private functions declaration.
-  * @{
-  */
-
+// Private function prototypes
 static int8_t CDC_Init_FS(void);
 static int8_t CDC_DeInit_FS(void);
 static int8_t CDC_Control_FS(uint8_t cmd, uint8_t* pbuf, uint16_t length);
 static int8_t CDC_Receive_FS(uint8_t* pbuf, uint32_t *Len);
 
-/* USER CODE BEGIN PRIVATE_FUNCTIONS_DECLARATION */
 
-/* USER CODE END PRIVATE_FUNCTIONS_DECLARATION */
-
-/**
-  * @}
-  */
-
+// CDC Interface
 USBD_CDC_ItfTypeDef USBD_Interface_fops_FS =
 {
   CDC_Init_FS,
@@ -182,23 +38,14 @@ USBD_CDC_ItfTypeDef USBD_Interface_fops_FS =
   */
 static int8_t CDC_Init_FS(void)
 {
-  /* USER CODE BEGIN 3 */
-  /* Set Application Buffers */
-  USBD_CDC_SetTxBuffer(&hUsbDeviceFS, UserTxBufferFS, 0);
-  USBD_CDC_SetRxBuffer(&hUsbDeviceFS, UserRxBufferFS);
+  USBD_CDC_SetTxBuffer(&hUsbDeviceFS, txbuf, 0);
+  USBD_CDC_SetRxBuffer(&hUsbDeviceFS, rxbuf.buf[rxbuf.head]);
   return (USBD_OK);
-  /* USER CODE END 3 */
 }
 
-/**
-  * @brief  DeInitializes the CDC media low layer
-  * @retval USBD_OK if all operations are OK else USBD_FAIL
-  */
 static int8_t CDC_DeInit_FS(void)
 {
-  /* USER CODE BEGIN 4 */
   return (USBD_OK);
-  /* USER CODE END 4 */
 }
 
 /**
@@ -214,23 +61,18 @@ static int8_t CDC_Control_FS(uint8_t cmd, uint8_t* pbuf, uint16_t length)
   switch(cmd)
   {
     case CDC_SEND_ENCAPSULATED_COMMAND:
-
     break;
 
     case CDC_GET_ENCAPSULATED_RESPONSE:
-
     break;
 
     case CDC_SET_COMM_FEATURE:
-
     break;
 
     case CDC_GET_COMM_FEATURE:
-
     break;
 
     case CDC_CLEAR_COMM_FEATURE:
-
     break;
 
   /*******************************************************************************/
@@ -251,7 +93,6 @@ static int8_t CDC_Control_FS(uint8_t cmd, uint8_t* pbuf, uint16_t length)
   /* 6      | bDataBits  |   1   | Number Data bits (5, 6, 7, 8 or 16).          */
   /*******************************************************************************/
     case CDC_SET_LINE_CODING:
-
     break;
 
     case CDC_GET_LINE_CODING:
@@ -264,14 +105,10 @@ static int8_t CDC_Control_FS(uint8_t cmd, uint8_t* pbuf, uint16_t length)
 	pbuf[6] = 8; // number of bits (8)
 	break;
 
-    break;
-
     case CDC_SET_CONTROL_LINE_STATE:
-
     break;
 
     case CDC_SEND_BREAK:
-
     break;
 
   default:
@@ -279,7 +116,6 @@ static int8_t CDC_Control_FS(uint8_t cmd, uint8_t* pbuf, uint16_t length)
   }
 
   return (USBD_OK);
-  /* USER CODE END 5 */
 }
 
 /**
@@ -297,39 +133,76 @@ static int8_t CDC_Control_FS(uint8_t cmd, uint8_t* pbuf, uint16_t length)
  * @param  Len: Number of data received (in bytes)
  * @retval Result of the opeartion: USBD_OK if all operations are OK else USBD_FAIL
  */
-
-uint8_t slcan_str[SLCAN_MTU];
-uint8_t slcan_str_index = 0;
-
 static int8_t CDC_Receive_FS (uint8_t* Buf, uint32_t *Len)
 {
-    for (uint32_t i = 0; i < *Len; i++)
-    {
-       if (Buf[i] == '\r')
-       {
-           int8_t result = slcan_parse_str(slcan_str, slcan_str_index);
+	// Check for overflow!
+	// If when we increment the head we're going to hit the tail
+	// (if we're filling the last spot in the queue)
+	// FIXME: Use a "full" variable instead of wasting one
+	// spot in the cirbuf as we are doing now
+	if( ((rxbuf.head + 1) % NUM_RX_BUFS) == rxbuf.tail)
+	{
+		error_assert(ERR_FULLBUF_USBRX);
 
-           // Success
-           //if(result == 0)
-           //    CDC_Transmit_FS("\n", 1); 
-           // Failure
-           //else
-           //    CDC_Transmit_FS("\a", 1);
+		// Listen again on the same buffer. Old data will be overwritten.
+	    USBD_CDC_SetRxBuffer(&hUsbDeviceFS, rxbuf.buf[rxbuf.head]);
+	    USBD_CDC_ReceivePacket(&hUsbDeviceFS);
+		return HAL_ERROR;
+	}
+	else
+	{
+		// Save off length
+		rxbuf.msglen[rxbuf.head] = *Len;
+		rxbuf.head = (rxbuf.head + 1) % NUM_RX_BUFS;
 
-           slcan_str_index = 0;
-       }
-       else
-       {
-           slcan_str[slcan_str_index++] = Buf[i];
-       }
-    }
+		// Start listening on next buffer. Previous buffer will be processed in main loop.
+	    USBD_CDC_SetRxBuffer(&hUsbDeviceFS, rxbuf.buf[rxbuf.head]);
+	    USBD_CDC_ReceivePacket(&hUsbDeviceFS);
+	    return (USBD_OK);
+	}
 
-    // prepare for next read
-    //USBD_CDC_SetRxBuffer(&hUsbDeviceFS, UserRxBufferFS);
-    USBD_CDC_ReceivePacket(&hUsbDeviceFS);
-
-    return (USBD_OK);
 }
+
+
+// Process incoming USB-CDC messages from RX FIFO
+void cdc_process(void)
+{
+	if(rxbuf.tail != rxbuf.head)
+	{
+		//  Process one whole buffer
+		for (uint32_t i = 0; i < rxbuf.msglen[rxbuf.tail]; i++)
+		{
+		   if (rxbuf.buf[rxbuf.tail][i] == '\r')
+		   {
+			   int8_t result = slcan_parse_str(slcan_str, slcan_str_index);
+
+			   // Success
+			   //if(result == 0)
+			   //    CDC_Transmit_FS("\n", 1);
+			   // Failure
+			   //else
+			   //    CDC_Transmit_FS("\a", 1);
+
+			   slcan_str_index = 0;
+		   }
+		   else
+		   {
+			   // Check for overflow of buffer
+			   if(slcan_str_index >= SLCAN_MTU)
+			   {
+				   // TODO: Return here and discard this CDC buffer?
+				   slcan_str_index = 0;
+			   }
+
+			   slcan_str[slcan_str_index++] = rxbuf.buf[rxbuf.tail][i];
+		   }
+		}
+
+		// Move on to next buffer
+		rxbuf.tail = (rxbuf.tail + 1) % NUM_RX_BUFS;
+	}
+}
+
 
 /**
  * @brief  CDC_Transmit_FS
@@ -342,40 +215,34 @@ static int8_t CDC_Receive_FS (uint8_t* Buf, uint32_t *Len)
  * @param  Len: Number of data to be send (in bytes)
  * @retval Result of the opeartion: USBD_OK if all operations are OK else USBD_FAIL or USBD_BUSY
  */
+
+// TODO: Do some buffering here. Try to transmit 64byte packets.
 uint8_t CDC_Transmit_FS(uint8_t* Buf, uint16_t Len)
 {
     uint8_t result = USBD_OK;
 
-    // NEW: Check if port is busy
-//    USBD_CDC_HandleTypeDef *hcdc = (USBD_CDC_HandleTypeDef*)hUsbDeviceFS.pClassData;
-//    if (hcdc->TxState != 0){
-//      return USBD_BUSY;
-//    }
-    
-    // Zero out buffer
-    for (uint32_t i=0; i < sizeof(UserTxBufferFS); i++)
+    // Check if port is busy
+    USBD_CDC_HandleTypeDef *hcdc = (USBD_CDC_HandleTypeDef*)hUsbDeviceFS.pClassData;
+    if (hcdc->TxState != 0){
+    	error_assert(ERR_USBTX_BUSY);
+    	return USBD_BUSY;
+    }
+
+    // Ensure message will fit in buffer
+    if(Len > TX_BUF_SIZE)
     {
-    	UserTxBufferFS[i] = 0;
+    	return 0;
     }
 
     // Copy data into buffer
     for (uint32_t i=0; i < Len; i++)
     {
-    	UserTxBufferFS[i] = Buf[i];
+    	txbuf[i] = Buf[i];
     }
 
     // Set transmit buffer and start TX
-    USBD_CDC_SetTxBuffer(&hUsbDeviceFS, UserTxBufferFS, Len);
+    USBD_CDC_SetTxBuffer(&hUsbDeviceFS, txbuf, Len);
     result = USBD_CDC_TransmitPacket(&hUsbDeviceFS);
 
-/*
-    for (i = 0; i < 1 + (Len/8); i++) {
-	USBD_CDC_SetTxBuffer(hUsbDeviceFS, UserTxBufferFS + (8*i), 8);
-	do {
-	    result = USBD_CDC_TransmitPacket(hUsbDeviceFS);
-	} while (result != HAL_BUSY);
-    }
-*/
-    /* USER CODE END 8 */
     return result;
 }

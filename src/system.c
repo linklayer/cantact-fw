@@ -16,21 +16,20 @@ void system_init(void)
     RCC_ClkInitTypeDef RCC_ClkInitStruct;
     RCC_PeriphCLKInitTypeDef PeriphClkInit;
 
-
-    // set up the oscillators
+    // Set up the oscillators
     // use internal HSI48 (48 MHz), no PLL
     RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI48;
     RCC_OscInitStruct.HSI48State = RCC_HSI48_ON;
     RCC_OscInitStruct.PLL.PLLState = RCC_PLL_NONE;
 
-    // set sysclk, hclk, and pclk1 source to HSI48 (48 MHz)
+    // Set sysclk, hclk, and pclk1 source to HSI48 (48 MHz)
     RCC_ClkInitStruct.ClockType = (RCC_CLOCKTYPE_SYSCLK |
 				   RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_PCLK1);
     RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_HSI48;
     RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
     RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
 
-    // set USB clock source to HSI48 (48 MHz)
+    // Set USB clock source to HSI48 (48 MHz)
     PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_USB;
     PeriphClkInit.UsbClockSelection = RCC_USBCLKSOURCE_HSI48;
 

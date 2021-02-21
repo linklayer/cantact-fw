@@ -101,7 +101,7 @@
 /*---------- -----------*/
 #define USBD_DEBUG_LEVEL     0
 /*---------- -----------*/
-#define USBD_SELF_POWERED     1
+#define USBD_SELF_POWERED     0
 /*---------- -----------*/
 #define MAX_STATIC_ALLOC_SIZE     512
 

@@ -1,6 +1,6 @@
 # CANable Firmware
 
-This repository contains sources for the slcan CANable firmware, based off of the CANtact firwmare. This firmware should still compile and run on the CANtact.
+This repository contains sources for the slcan CANable firmware, based off of the CANtact firwmare. This firmware may still compile and run on the CANtact.
 
 ## Supported Commands
 

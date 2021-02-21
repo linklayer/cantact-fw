@@ -58,7 +58,7 @@ extern "C" {
 #endif /* USBD_LPM_ENABLED */
 
 #ifndef USBD_SELF_POWERED
-#define USBD_SELF_POWERED                               1U
+#define USBD_SELF_POWERED                               0U
 #endif /*USBD_SELF_POWERED */
 
 #ifndef USBD_SUPPORT_USER_STRING_DESC

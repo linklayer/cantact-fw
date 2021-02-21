@@ -7,6 +7,8 @@
 #include "can.h"
 #include "led.h"
 
+
+// Externs
 extern PCD_HandleTypeDef hpcd_USB_FS;
 
 

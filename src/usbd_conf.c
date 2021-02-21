@@ -104,7 +104,7 @@ void HAL_PCD_MspInit(PCD_HandleTypeDef* pcdHandle)
 
     /* Peripheral interrupt init */
     // IMPORTANT: USB must have a lower priority than SysTick, or timeouts won't work
-    HAL_NVIC_SetPriority(USB_IRQn, 1, 0);
+    HAL_NVIC_SetPriority(USB_IRQn, 2, 0);
     HAL_NVIC_EnableIRQ(USB_IRQn);
   /* USER CODE BEGIN USB_MspInit 1 */
 
