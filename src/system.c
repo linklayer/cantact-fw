@@ -34,7 +34,7 @@ void system_init(void)
     PeriphClkInit.UsbClockSelection = RCC_USBCLKSOURCE_HSI48;
 
     HAL_RCC_OscConfig(&RCC_OscInitStruct);
-    HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_0);
+    HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_1);
     HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit);
 
     HAL_SYSTICK_Config(HAL_RCC_GetHCLKFreq()/1000);

@@ -8,8 +8,21 @@
 #include "led.h"
 
 
+
 // Externs
 extern PCD_HandleTypeDef hpcd_USB_FS;
+
+
+
+void NMI_Handler(void)
+{
+	while(1);
+}
+
+void HardFault_Handler(void)
+{
+	while(1);
+}
 
 
 // Handle USB interrupts

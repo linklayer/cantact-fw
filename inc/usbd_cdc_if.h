@@ -4,7 +4,7 @@
 #include "usbd_cdc.h"
 
 // Buffer settings
-#define TX_BUF_SIZE  32 // Linear TX buf size
+#define TX_BUF_SIZE  64 // Linear TX buf size
 #define NUM_RX_BUFS 6 // Number of RX buffers in FIFO
 #define RX_BUF_SIZE CDC_DATA_FS_MAX_PACKET_SIZE // Size of RX buffer item
 

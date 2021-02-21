@@ -7,8 +7,8 @@
 
 
 // Private variables
-static volatile uint32_t led_blue_laston = 0;
-static volatile uint32_t led_green_laston = 0;
+static uint32_t led_blue_laston = 0;
+static uint32_t led_green_laston = 0;
 static uint32_t led_blue_lastoff = 0;
 static uint32_t led_green_lastoff = 0;
 
