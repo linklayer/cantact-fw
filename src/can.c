@@ -76,7 +76,7 @@ void can_enable(void)
     	can_handle.Init.AutoWakeUp = DISABLE;
     	can_handle.Init.AutoRetransmission = can_autoretransmit;
     	can_handle.Init.ReceiveFifoLocked = DISABLE;
-    	can_handle.Init.TransmitFifoPriority = DISABLE;
+    	can_handle.Init.TransmitFifoPriority = ENABLE;
         HAL_CAN_Init(&can_handle);
 
         HAL_CAN_ConfigFilter(&can_handle, &filter);
