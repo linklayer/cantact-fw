@@ -86,3 +86,20 @@ void system_hex32(char *out, uint32_t val)
 		p--;
 	}
 } 
+
+
+// Disable all interrupts
+void system_irq_disable(void)
+{
+        __disable_irq();
+        __DSB();
+        __ISB();
+}
+
+
+// Enable all interrupts
+void system_irq_enable(void)
+{
+        __enable_irq();
+}
+

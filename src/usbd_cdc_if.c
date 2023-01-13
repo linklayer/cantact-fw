@@ -167,6 +167,7 @@ static int8_t CDC_Receive_FS (uint8_t* Buf, uint32_t *Len)
 // Process incoming USB-CDC messages from RX FIFO
 void cdc_process(void)
 {
+	system_irq_disable();
 	if(rxbuf.tail != rxbuf.head)
 	{
 		//  Process one whole buffer
@@ -201,6 +202,7 @@ void cdc_process(void)
 		// Move on to next buffer
 		rxbuf.tail = (rxbuf.tail + 1) % NUM_RX_BUFS;
 	}
+	system_irq_enable();
 }
 
 
