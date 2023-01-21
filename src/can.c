@@ -141,6 +141,10 @@ void can_set_bitrate(enum can_bitrate bitrate)
         case CAN_BITRATE_1000K:
             prescaler = 6;
             break;
+        case CAN_BITRATE_INVALID:
+        default:
+            prescaler = 6;
+            break;
     }
 
     led_green_on();

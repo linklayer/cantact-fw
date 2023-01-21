@@ -5,6 +5,7 @@
 #include "usbd_cdc_if.h"
 #include "slcan.h"
 #include "led.h"
+#include "system.h"
 #include "error.h"
 
 // Private variables
@@ -221,13 +222,17 @@ void cdc_process(void)
 // TODO: Do some buffering here. Try to transmit 64byte packets.
 uint8_t CDC_Transmit_FS(uint8_t* Buf, uint16_t Len)
 {
-    uint8_t result = USBD_OK;
-
-    // Check if port is busy
-    USBD_CDC_HandleTypeDef *hcdc = (USBD_CDC_HandleTypeDef*)hUsbDeviceFS.pClassData;
-    if (hcdc->TxState != 0){
-    	error_assert(ERR_USBTX_BUSY);
-    	return USBD_BUSY;
+    // Attempt to transmit on USB, wait until not busy
+    // Future: implement TX buffering
+    uint32_t start_wait = HAL_GetTick();
+    while( ((USBD_CDC_HandleTypeDef*)hUsbDeviceFS.pClassData)->TxState)
+    {
+      // If no TX within timeout, abort.
+      if(HAL_GetTick() - start_wait >= 10)
+      {
+          error_assert(ERR_USBTX_BUSY);
+          return USBD_BUSY;
+      }
     }
 
     // Ensure message will fit in buffer
@@ -244,7 +249,5 @@ uint8_t CDC_Transmit_FS(uint8_t* Buf, uint16_t Len)
 
     // Set transmit buffer and start TX
     USBD_CDC_SetTxBuffer(&hUsbDeviceFS, txbuf, Len);
-    result = USBD_CDC_TransmitPacket(&hUsbDeviceFS);
-
-    return result;
+    return USBD_CDC_TransmitPacket(&hUsbDeviceFS);
 }

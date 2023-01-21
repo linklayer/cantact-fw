@@ -5,7 +5,9 @@
 #include "stm32f0xx_hal.h"
 #include <string.h>
 #include "can.h"
+#include "error.h"
 #include "slcan.h"
+#include "printf.h"
 #include "usbd_cdc_if.h"
 
 
@@ -161,6 +163,16 @@ int8_t slcan_parse_str(uint8_t *buf, uint8_t len)
 			char* fw_id = GIT_VERSION " " GIT_REMOTE "\r";
 			CDC_Transmit_FS((uint8_t*)fw_id, strlen(fw_id));
 			return 0;
+		}
+
+	    // Nonstandard!
+		case 'E':
+		{
+	        // Report error register
+			char errstr[64] = {0};
+			snprintf_(errstr, 64, "CANable Error Register: %X", (unsigned int)error_reg());
+			CDC_Transmit_FS((uint8_t*)errstr, strlen(errstr));
+	        return 0;
 		}
 
 		case 'T':

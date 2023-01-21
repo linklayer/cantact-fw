@@ -40,3 +40,9 @@ uint8_t error_occurred(error_t err)
 
 	return (err_reg & (1 << err)) > 0;
 }
+
+// Return value of error register
+uint32_t error_reg(void)
+{
+	return err_reg;
+}
